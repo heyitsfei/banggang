@@ -838,7 +838,7 @@
         
         const urlParams = new URLSearchParams(window.location.search);
         const channelId = urlParams.get('channelId') || '';
-        const userId = urlParams.get('userId') || '';
+        const username = urlParams.get('username') || '';
         const baseUrl = window.location.origin;
         
         let currentGameData = null;
@@ -886,7 +886,7 @@
                     body: JSON.stringify({
                         command: command,
                         channelId: channelId,
-                        userId: userId,
+                        username: username,
                     }),
                 });
                 
@@ -967,7 +967,8 @@
             }
             
             try {
-                const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&userId=${userId}`);
+                const encodedUsername = encodeURIComponent(username);
+                const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&username=${encodedUsername}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.error || `Failed to fetch game data (${response.status})`);

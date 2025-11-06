@@ -172,7 +172,8 @@ bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentio
             const game = result.game
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             const baseUrl = getBaseUrl()
-            const gameUrl = `${baseUrl}/game?channelId=${channelId}&userId=${currentPlayer.userId}`
+            const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
+            const gameUrl = `${baseUrl}/game?channelId=${channelId}&username=${username}`
 
             await handler.sendMessage(
                 channelId,
@@ -215,7 +216,8 @@ bot.onSlashCommand('shoot', async (handler, { channelId, userId }) => {
         if (game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             const baseUrl = getBaseUrl()
-            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&userId=${currentPlayer.userId}`
+            const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
+            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&username=${username}`
             
             await bot.sendMessage(
                 game.channelId,
@@ -245,7 +247,8 @@ bot.onSlashCommand('pass', async (handler, { channelId, userId }) => {
         if (game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             const baseUrl = getBaseUrl()
-            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&userId=${currentPlayer.userId}`
+            const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
+            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&username=${username}`
             
             await bot.sendMessage(
                 game.channelId,
@@ -410,7 +413,7 @@ function getBaseUrl(): string {
 app.get('/api/game', (c) => {
     try {
         const channelId = c.req.query('channelId')
-        const userId = c.req.query('userId')
+        const username = c.req.query('username')
         
         if (!channelId) {
             return c.json({ error: 'channelId is required' }, 400)
@@ -421,12 +424,14 @@ app.get('/api/game', (c) => {
             return c.json({ error: 'No game found for this channel. Start a new game with /start' }, 404)
         }
         
-        // Check if it's the user's turn
+        // Check if it's the user's turn by matching username
         let isMyTurn = false
-        if (userId && game.state === 'active' && game.alivePlayers.length > 0) {
+        if (username && game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             if (currentPlayer) {
-                isMyTurn = currentPlayer.userId.toLowerCase() === userId.toLowerCase()
+                const decodedUsername = decodeURIComponent(username)
+                // Match by username (displayName)
+                isMyTurn = (currentPlayer.displayName || currentPlayer.userId).toLowerCase() === decodedUsername.toLowerCase()
             }
         }
         
@@ -459,9 +464,9 @@ app.get('/api/game', (c) => {
 app.post('/api/command', async (c) => {
     try {
         const body = await c.req.json()
-        const { command, channelId, userId } = body
+        const { command, channelId, username } = body
         
-        if (!command || !channelId || !userId) {
+        if (!command || !channelId || !username) {
             return c.json({ success: false, error: 'Missing required fields' }, 400)
         }
         
@@ -469,10 +474,25 @@ app.post('/api/command', async (c) => {
             return c.json({ success: false, error: 'Invalid command' }, 400)
         }
         
+        // Find userId from username in the game
+        const game = gameManager.getGame(channelId)
+        if (!game) {
+            return c.json({ success: false, error: 'No game found' }, 404)
+        }
+        
+        // Find player by username
+        const player = game.players.find(p => 
+            (p.displayName || p.userId).toLowerCase() === username.toLowerCase()
+        )
+        
+        if (!player) {
+            return c.json({ success: false, error: 'Player not found in game' }, 404)
+        }
+        
         // Process the command through game manager
         const result = await gameManager.handleAction(
             channelId,
-            userId,
+            player.userId,
             command,
             async (game, message) => {
                 await sendGameMessage(game.channelId, message)
@@ -481,7 +501,8 @@ app.post('/api/command', async (c) => {
                 if (game.state === 'active' && game.alivePlayers.length > 0) {
                     const currentPlayer = game.alivePlayers[game.currentTurnIndex]
                     const baseUrl = getBaseUrl()
-                    const gameUrl = `${baseUrl}/game?channelId=${channelId}&userId=${currentPlayer.userId}`
+                    const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
+                    const gameUrl = `${baseUrl}/game?channelId=${channelId}&username=${username}`
                     
                     await bot.sendMessage(
                         game.channelId,
