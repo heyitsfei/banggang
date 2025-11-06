@@ -90,9 +90,20 @@ export function checkChamber(game: Game): boolean {
 
 /**
  * Advance gun chamber
+ * Note: Does NOT wrap - once we've checked all chambers, we must have found the bullet
  */
 export function advanceChamber(game: Game): void {
-    game.gunChamber = (game.gunChamber + 1) % game.chambers
+    game.gunChamber = game.gunChamber + 1
+    // If we've checked all chambers, something is wrong (should have found bullet by now)
+    if (game.gunChamber >= game.chambers) {
+        console.error('ERROR: Advanced past all chambers without finding bullet!', {
+            gunChamber: game.gunChamber,
+            bulletChamber: game.bulletChamber,
+        })
+        // Force bullet to be in the last chamber to prevent infinite loop
+        game.bulletChamber = game.chambers - 1
+        game.gunChamber = game.chambers - 1
+    }
 }
 
 /**

@@ -237,6 +237,8 @@ export class GameManager {
                 player: userId,
             })
             
+            // Check if current chamber has the bullet
+            // The bullet is randomly placed at game start and after each death
             const hasBullet = checkChamber(game)
 
             if (hasBullet) {
@@ -421,11 +423,14 @@ export class GameManager {
                 ? `⚠️ <@${currentPlayer?.userId}> must /shoot! (${timeLeft}s)`
                 : `<@${currentPlayer?.userId}> (${timeLeft}s) - /shoot or /pass`
 
+            const remainingChambers = game.chambers - game.gunChamber
+            const deathProbability = remainingChambers > 0 ? (1 / remainingChambers * 100).toFixed(1) : '100'
+            
             return `💀 Bang Gang - Round Active\n\n` +
                 `Players: ${game.alivePlayers.length}/${game.players.length} alive\n` +
                 `💰 Pool A: ${formatAmount(game.poolA)} ETH | 🔥 Pool B: ${formatAmount(game.poolB)} ETH\n` +
                 `Current turn: ${turnInfo}\n` +
-                `Chamber: ${game.gunChamber + 1}/6\n` +
+                `Chamber: ${game.gunChamber + 1}/6 (${deathProbability}% death chance)\n` +
                 `Safe shots: ${game.consecutiveSafeShots}/${this.config.maxSafeShots}`
         }
 
