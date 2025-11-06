@@ -50,6 +50,7 @@ export class GameManager {
             bulletChamber: randomBulletPosition(),
             consecutivePasses: 0,
             forcedShoot: false,
+            consecutiveSafeShots: 0,
             createdAt: new Date(),
         }
 
@@ -145,6 +146,8 @@ export class GameManager {
         game.currentTurnIndex = 0
         game.consecutivePasses = 0
         game.forcedShoot = false
+        game.consecutiveSafeShots = 0
+        game.lastDeathTime = undefined
         resetGun(game)
         
         console.log('Game started:', {
@@ -242,6 +245,10 @@ export class GameManager {
                 currentPlayer.isAlive = false
                 game.alivePlayers = game.alivePlayers.filter((p) => p.isAlive)
                 
+                // Reset safe shot counter
+                game.consecutiveSafeShots = 0
+                game.lastDeathTime = new Date()
+                
                 // Adjust turn index: if current player was at the end, wrap to 0
                 // Otherwise, the next player is already at the correct index after filtering
                 if (game.currentTurnIndex >= game.alivePlayers.length) {
@@ -270,18 +277,54 @@ export class GameManager {
                 }
             } else {
                 // Player survives
-                resultMessage = `🔫 Click! Safe!`
+                game.consecutiveSafeShots++
+                
+                // Check for infinite loop (too many safe shots)
+                if (game.consecutiveSafeShots >= this.config.maxSafeShots) {
+                    // Terminate game due to infinite loop
+                    game.state = 'finished'
+                    const refundPerPlayer = game.poolA / BigInt(game.alivePlayers.length)
+                    
+                    resultMessage = `🔫 Click! Safe!\n\n` +
+                        `⚠️ **Game terminated** - Too many safe shots detected (possible bug)\n` +
+                        `Refunding ${formatAmount(refundPerPlayer)} ETH to each remaining player\n` +
+                        `Players: ${game.alivePlayers.map(p => `<@${p.userId}>`).join(', ')}`
+                    
+                    this.games.delete(channelId)
+                    playerDied = false // Don't skip turn advance since game is ending
+                } else {
+                    resultMessage = `🔫 Click! Safe!`
 
-                // Bonus from Pool B
-                if (game.poolB >= this.config.bonusFromB) {
-                    game.poolA += this.config.bonusFromB
-                    game.poolB -= this.config.bonusFromB
-                    resultMessage += ` (+0.00015 ETH B→A)`
+                    // Bonus from Pool B
+                    if (game.poolB >= this.config.bonusFromB) {
+                        game.poolA += this.config.bonusFromB
+                        game.poolB -= this.config.bonusFromB
+                        resultMessage += ` (+0.00015 ETH B→A)`
+                    }
+
+                    resultMessage += `\n💰 A = ${formatAmount(game.poolA)} ETH | 🔥 B = ${formatAmount(game.poolB)} ETH`
+
+                    advanceChamber(game)
                 }
+            }
+        }
 
-                resultMessage += `\n💰 A = ${formatAmount(game.poolA)} ETH | 🔥 B = ${formatAmount(game.poolB)} ETH`
-
-                advanceChamber(game)
+        // Check game duration limit
+        if (game.state === 'active') {
+            const gameDurationMinutes = (Date.now() - game.createdAt.getTime()) / (1000 * 60)
+            if (gameDurationMinutes >= this.config.maxGameDurationMinutes) {
+                game.state = 'finished'
+                const refundPerPlayer = game.poolA / BigInt(game.alivePlayers.length)
+                
+                await onAction(
+                    game,
+                    `⏰ **Game terminated** - Maximum duration (${this.config.maxGameDurationMinutes} minutes) exceeded\n` +
+                        `Refunding ${formatAmount(refundPerPlayer)} ETH to each remaining player\n` +
+                        `Players: ${game.alivePlayers.map(p => `<@${p.userId}>`).join(', ')}`
+                )
+                
+                this.games.delete(channelId)
+                return { success: true, message: 'Game terminated due to duration limit' }
             }
         }
 
@@ -382,10 +425,59 @@ export class GameManager {
                 `Players: ${game.alivePlayers.length}/${game.players.length} alive\n` +
                 `💰 Pool A: ${formatAmount(game.poolA)} ETH | 🔥 Pool B: ${formatAmount(game.poolB)} ETH\n` +
                 `Current turn: ${turnInfo}\n` +
-                `Chamber: ${game.gunChamber + 1}/6`
+                `Chamber: ${game.gunChamber + 1}/6\n` +
+                `Safe shots: ${game.consecutiveSafeShots}/${this.config.maxSafeShots}`
         }
 
         return 'Game finished'
+    }
+
+    /**
+     * Stop/terminate the current game and refund players
+     */
+    stopGame(channelId: string): { success: boolean; message: string; game?: Game } {
+        const game = this.games.get(channelId)
+        if (!game) {
+            return { success: false, message: 'No active game found' }
+        }
+
+        if (game.state === 'finished') {
+            return { success: false, message: 'Game is already finished' }
+        }
+
+        // Clean up timers
+        if (game.turnTimer) {
+            clearTimeout(game.turnTimer)
+        }
+
+        // Calculate refund per player (only alive players get refunds)
+        const aliveCount = game.alivePlayers.length
+        let refundMessage = ''
+        
+        if (aliveCount > 0 && game.poolA > BigInt(0)) {
+            const refundPerPlayer = game.poolA / BigInt(aliveCount)
+            const playerList = game.alivePlayers.map(p => `<@${p.userId}>`).join(', ')
+            refundMessage = `\n\n💰 Refunding ${formatAmount(refundPerPlayer)} ETH to each remaining player\n` +
+                `Players: ${playerList}`
+        } else if (game.state === 'waiting') {
+            // If game hasn't started, refund all players
+            const totalRefund = game.poolA + game.houseRake // Return house rake too
+            if (game.players.length > 0 && totalRefund > BigInt(0)) {
+                const refundPerPlayer = totalRefund / BigInt(game.players.length)
+                const playerList = game.players.map(p => `<@${p.userId}>`).join(', ')
+                refundMessage = `\n\n💰 Refunding ${formatAmount(refundPerPlayer)} ETH to each player\n` +
+                    `Players: ${playerList}`
+            }
+        }
+
+        game.state = 'finished'
+        this.games.delete(channelId)
+
+        return {
+            success: true,
+            message: `🛑 **Game stopped**${refundMessage}`,
+            game,
+        }
     }
 
     /**

@@ -29,6 +29,8 @@ export interface Game {
     bulletChamber: number // Which chamber has the bullet (0-5)
     consecutivePasses: number // Track full-table passes
     forcedShoot: boolean // Next player must shoot (full table passed)
+    consecutiveSafeShots: number // Track shots without death (for loop detection)
+    lastDeathTime?: Date // Track when last death occurred
     turnTimer?: NodeJS.Timeout
     turnStartTime?: Date
     createdAt: Date
@@ -43,6 +45,8 @@ export interface GameConfig {
     turnTimerSeconds: number
     chambers: number
     bullets: number
+    maxSafeShots: number // Maximum safe shots before terminating (prevents infinite loops)
+    maxGameDurationMinutes: number // Maximum game duration in minutes
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -54,6 +58,8 @@ export const DEFAULT_CONFIG: GameConfig = {
     turnTimerSeconds: 10,
     chambers: 6,
     bullets: 1,
+    maxSafeShots: 18, // 3 full rotations of 6-chamber gun (should be impossible)
+    maxGameDurationMinutes: 30, // 30 minutes max game duration
 }
 
 /**

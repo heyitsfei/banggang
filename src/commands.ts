@@ -25,6 +25,10 @@ const commands = [
         name: 'pass',
         description: 'Pass your turn (costs 0.00015 ETH)',
     },
+    {
+        name: 'stop',
+        description: 'Stop the current game and refund players',
+    },
 ] as const satisfies PlainMessage<SlashCommand>[]
 
 export default commands

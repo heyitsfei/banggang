@@ -230,6 +230,16 @@ bot.onSlashCommand('pass', async (handler, { channelId, userId }) => {
     }
 })
 
+// Stop command
+bot.onSlashCommand('stop', async (handler, { channelId }) => {
+    const result = gameManager.stopGame(channelId)
+    if (result.success) {
+        await handler.sendMessage(channelId, result.message)
+    } else {
+        await handler.sendMessage(channelId, `❌ ${result.message}`)
+    }
+})
+
 // Help command
 bot.onSlashCommand('help', async (handler, { channelId }) => {
     await handler.sendMessage(
@@ -239,7 +249,8 @@ bot.onSlashCommand('help', async (handler, { channelId }) => {
             '• `/start` - Start a new game\n' +
             '• `/status` - Check game status\n' +
             '• `/shoot` - Pull the trigger (your turn)\n' +
-            '• `/pass` - Pass your turn (costs 0.00015 ETH)\n\n' +
+            '• `/pass` - Pass your turn (costs 0.00015 ETH)\n' +
+            '• `/stop` - Stop the current game and refund players\n\n' +
             '**How to Play:**\n' +
             '1. Tip any amount of ETH to the bot to join a game\n' +
             '2. Use `/start` when enough players have joined\n' +
