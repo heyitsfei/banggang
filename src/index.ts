@@ -393,9 +393,8 @@ app.get('/game', (c) => {
 
 // Get base URL for miniapp links
 function getBaseUrl(): string {
-    const port = process.env.PORT || '3000'
-    // In production, you should set BASE_URL env var to your actual domain
-    const baseUrl = process.env.BASE_URL || `http://localhost:${port}`
+    // Use BASE_URL env var if set, otherwise default to Render URL
+    const baseUrl = process.env.BASE_URL || 'https://banggang.onrender.com'
     return baseUrl
 }
 
