@@ -95,6 +95,10 @@ export function advanceChamber(game: Game): void {
 export function resetGun(game: Game): void {
     game.gunChamber = 0
     game.bulletChamber = randomBulletPosition()
+    console.log('Gun reset:', {
+        gunChamber: game.gunChamber,
+        bulletChamber: game.bulletChamber,
+    })
 }
 
 /**

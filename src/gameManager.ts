@@ -146,6 +146,12 @@ export class GameManager {
         game.consecutivePasses = 0
         game.forcedShoot = false
         resetGun(game)
+        
+        console.log('Game started:', {
+            players: game.players.length,
+            gunChamber: game.gunChamber,
+            bulletChamber: game.bulletChamber,
+        })
 
         return { success: true, message: 'Game started!', game }
     }
@@ -169,8 +175,19 @@ export class GameManager {
         }
 
         const currentPlayer = game.alivePlayers[game.currentTurnIndex]
-        if (!currentPlayer || currentPlayer.userId !== userId) {
-            return { success: false, message: "It's not your turn" }
+        
+        // Debug logging for turn check
+        console.log('Turn check:', {
+            currentTurnIndex: game.currentTurnIndex,
+            currentPlayerId: currentPlayer?.userId,
+            requestingUserId: userId,
+            alivePlayers: game.alivePlayers.map(p => p.userId),
+            match: currentPlayer?.userId?.toLowerCase() === userId.toLowerCase(),
+        })
+        
+        if (!currentPlayer || currentPlayer.userId.toLowerCase() !== userId.toLowerCase()) {
+            const expectedPlayer = currentPlayer?.userId || 'none'
+            return { success: false, message: `It's not your turn. Current turn: <@${expectedPlayer}>` }
         }
 
         if (!currentPlayer.isAlive) {
@@ -189,6 +206,7 @@ export class GameManager {
         }
 
         let resultMessage = ''
+        let playerDied = false
 
         if (action === 'pass') {
             // Pass: add to Pool B
@@ -208,12 +226,27 @@ export class GameManager {
             // Shoot
             game.consecutivePasses = 0
             game.forcedShoot = false // Reset forced flag
+            
+            // Debug logging
+            console.log('Shoot action:', {
+                gunChamber: game.gunChamber,
+                bulletChamber: game.bulletChamber,
+                player: userId,
+            })
+            
             const hasBullet = checkChamber(game)
 
             if (hasBullet) {
                 // Player dies
+                playerDied = true
                 currentPlayer.isAlive = false
                 game.alivePlayers = game.alivePlayers.filter((p) => p.isAlive)
+                
+                // Adjust turn index: if current player was at the end, wrap to 0
+                // Otherwise, the next player is already at the correct index after filtering
+                if (game.currentTurnIndex >= game.alivePlayers.length) {
+                    game.currentTurnIndex = 0
+                }
 
                 resultMessage = `💥 BANG! <@${userId}> is out!`
 
@@ -232,7 +265,7 @@ export class GameManager {
                     // Reset game
                     this.games.delete(channelId)
                 } else {
-                    // Continue game
+                    // Continue game - don't advance turn, next player is already at currentTurnIndex
                     resultMessage += `\n\n🔫 Gun reloaded... ${game.alivePlayers.length} players remain`
                 }
             } else {
@@ -254,8 +287,10 @@ export class GameManager {
 
         // Move to next player if game still active
         if (game.state === 'active') {
-            // Always advance turn after action
-            this.advanceTurn(game)
+            // Advance turn after action (unless player died, in which case next player is already at currentTurnIndex)
+            if (!playerDied) {
+                this.advanceTurn(game)
+            }
 
             // Set up next turn timer
             this.startTurnTimer(game, onAction)

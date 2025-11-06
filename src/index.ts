@@ -12,6 +12,25 @@ const bot = await makeTownsBot(process.env.APP_PRIVATE_DATA!, process.env.JWT_SE
 // Initialize game manager
 const gameManager = new GameManager()
 
+// Cache user display names (userId -> displayName)
+const userDisplayNames = new Map<string, string>()
+
+// Helper to get user display name (with fallback)
+function getUserDisplayName(userId: string): string {
+    return userDisplayNames.get(userId) || userId.slice(0, 10) + '...'
+}
+
+// Helper to cache display names from mentions
+function cacheDisplayNamesFromMentions(mentions?: Array<{ userId: string; displayName: string }>): void {
+    if (mentions && mentions.length > 0) {
+        for (const mention of mentions) {
+            if (mention.displayName) {
+                userDisplayNames.set(mention.userId, mention.displayName)
+            }
+        }
+    }
+}
+
 // Helper to send game messages
 async function sendGameMessage(channelId: string, message: string): Promise<void> {
     await bot.sendMessage(channelId, message)
@@ -50,7 +69,8 @@ bot.onTip(async (handler, event) => {
         if (!game) {
             gameManager.createGame(channelId, spaceId)
             // Now add the player
-            const result = gameManager.addPlayer(channelId, senderAddress, senderAddress.slice(0, 10), amount)
+            const displayName = getUserDisplayName(senderAddress)
+            const result = gameManager.addPlayer(channelId, senderAddress, displayName, amount)
             if (result.success && result.game) {
                 const game = result.game
                 await handler.sendMessage(
@@ -64,7 +84,7 @@ bot.onTip(async (handler, event) => {
                     {
                         mentions: [{
                             userId: senderAddress,
-                            displayName: senderAddress.slice(0, 10),
+                            displayName: displayName,
                             mentionBehavior: { case: undefined },
                         }],
                     },
@@ -80,7 +100,8 @@ bot.onTip(async (handler, event) => {
     }
 
     // Add player to game
-    const result = gameManager.addPlayer(channelId, senderAddress, senderAddress.slice(0, 10), amount)
+    const displayName = getUserDisplayName(senderAddress)
+    const result = gameManager.addPlayer(channelId, senderAddress, displayName, amount)
 
     if (result.success && result.game) {
         const game = result.game
@@ -94,7 +115,7 @@ bot.onTip(async (handler, event) => {
             {
                 mentions: [{
                     userId: senderAddress,
-                    displayName: senderAddress.slice(0, 10),
+                    displayName: displayName,
                     mentionBehavior: { case: undefined },
                 }],
             },
@@ -105,7 +126,8 @@ bot.onTip(async (handler, event) => {
 })
 
 // Start game command
-bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId }) => {
+bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentions }) => {
+    cacheDisplayNamesFromMentions(mentions)
     try {
         // Create game if it doesn't exist
         let game = gameManager.getGame(channelId)
@@ -239,7 +261,10 @@ bot.onSlashCommand('time', async (handler, { channelId }) => {
     await handler.sendMessage(channelId, `Current time: ${currentTime} ⏰`)
 })
 
-bot.onMessage(async (handler, { message, channelId, eventId, createdAt }) => {
+bot.onMessage(async (handler, { message, channelId, eventId, createdAt, userId, mentions }) => {
+    // Cache display names from mentions in messages
+    cacheDisplayNamesFromMentions(mentions)
+
     if (message.includes('hello')) {
         await handler.sendMessage(channelId, 'Hello there! 👋')
         return
