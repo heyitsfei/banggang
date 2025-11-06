@@ -49,83 +49,212 @@
             justify-content: center;
             align-items: center;
             margin: 30px 0;
-            min-height: 200px;
+            min-height: 250px;
+            perspective: 1000px;
+            perspective-origin: center center;
         }
         
         .gun {
             position: relative;
-            width: 200px;
-            height: 150px;
+            width: 220px;
+            height: 180px;
+            transform-style: preserve-3d;
+            transform: rotateY(-15deg) rotateX(5deg);
+            transition: transform 0.3s ease;
+        }
+        
+        .gun:hover {
+            transform: rotateY(-10deg) rotateX(3deg) scale(1.05);
         }
         
         .gun-body {
             position: absolute;
+            width: 200px;
+            height: 50px;
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+            border-radius: 25px;
+            top: 65px;
+            left: 10px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.8),
+                inset 0 2px 5px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+            transform: translateZ(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gun-body::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 10px;
             width: 180px;
             height: 40px;
-            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(0, 0, 0, 0.3) 100%);
             border-radius: 20px;
-            top: 55px;
-            left: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         }
         
         .gun-barrel {
             position: absolute;
-            width: 120px;
-            height: 30px;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-            border-radius: 15px;
-            top: 60px;
-            left: 70px;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+            width: 140px;
+            height: 35px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            border-radius: 18px;
+            top: 67px;
+            left: 80px;
+            box-shadow: 
+                inset 0 3px 8px rgba(0, 0, 0, 0.7),
+                0 5px 15px rgba(0, 0, 0, 0.6),
+                inset 0 -2px 3px rgba(255, 255, 255, 0.05);
+            transform: translateZ(15px) rotateX(-2deg);
+            border: 1px solid rgba(0, 0, 0, 0.5);
+        }
+        
+        .gun-barrel::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 130px;
+            height: 25px;
+            background: radial-gradient(ellipse at center, 
+                rgba(0, 0, 0, 0.8) 0%,
+                rgba(0, 0, 0, 0.4) 50%,
+                transparent 100%);
+            border-radius: 12px;
         }
         
         .cylinder {
             position: absolute;
-            width: 80px;
-            height: 80px;
-            top: 35px;
-            left: 60px;
-            transform-origin: center;
+            width: 90px;
+            height: 90px;
+            top: 40px;
+            left: 65px;
+            transform-style: preserve-3d;
+            transform-origin: center center;
             transition: transform 0.1s linear;
         }
         
-        .cylinder.spinning {
-            animation: spin 0.5s linear infinite;
+        .cylinder::before {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255, 255, 255, 0.2) 0%,
+                rgba(100, 100, 100, 0.3) 30%,
+                rgba(50, 50, 50, 0.8) 70%,
+                rgba(20, 20, 20, 1) 100%);
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.8),
+                inset 0 2px 5px rgba(255, 255, 255, 0.1),
+                inset 0 -5px 10px rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(60, 60, 60, 0.8);
+            transform: translateZ(0);
         }
         
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .cylinder::after {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, 
+                rgba(0, 0, 0, 0.9) 0%,
+                rgba(30, 30, 30, 0.8) 100%);
+            top: 10px;
+            left: 10px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 1);
+        }
+        
+        .cylinder.spinning {
+            animation: spin3d 0.5s linear infinite;
+        }
+        
+        @keyframes spin3d {
+            from { transform: rotateZ(0deg); }
+            to { transform: rotateZ(360deg); }
         }
         
         .cylinder-chamber {
             position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #333;
-            border: 2px solid #555;
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle, #444 0%, #222 100%);
+            border: 2px solid #666;
             border-radius: 50%;
-            transform-origin: 40px 40px;
+            transform-origin: 45px 45px;
+            box-shadow: 
+                0 2px 5px rgba(0, 0, 0, 0.8),
+                inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            transform-style: preserve-3d;
         }
         
-        .cylinder-chamber:nth-child(1) { transform: rotate(0deg) translateX(40px); }
-        .cylinder-chamber:nth-child(2) { transform: rotate(60deg) translateX(40px); }
-        .cylinder-chamber:nth-child(3) { transform: rotate(120deg) translateX(40px); }
-        .cylinder-chamber:nth-child(4) { transform: rotate(180deg) translateX(40px); }
-        .cylinder-chamber:nth-child(5) { transform: rotate(240deg) translateX(40px); }
-        .cylinder-chamber:nth-child(6) { transform: rotate(300deg) translateX(40px); }
+        .cylinder-chamber::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #222 0%, #000 100%);
+            top: 3px;
+            left: 3px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
+        }
+        
+        .cylinder-chamber:nth-child(1) { transform: rotateZ(0deg) translateX(45px) translateZ(5px); }
+        .cylinder-chamber:nth-child(2) { transform: rotateZ(60deg) translateX(45px) translateZ(5px); }
+        .cylinder-chamber:nth-child(3) { transform: rotateZ(120deg) translateX(45px) translateZ(5px); }
+        .cylinder-chamber:nth-child(4) { transform: rotateZ(180deg) translateX(45px) translateZ(5px); }
+        .cylinder-chamber:nth-child(5) { transform: rotateZ(240deg) translateX(45px) translateZ(5px); }
+        .cylinder-chamber:nth-child(6) { transform: rotateZ(300deg) translateX(45px) translateZ(5px); }
         
         .cylinder-chamber.bullet {
-            background: #ff4444;
+            background: radial-gradient(circle, #ff6666 0%, #cc0000 100%);
             border-color: #ff0000;
-            box-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
+            box-shadow: 
+                0 0 15px rgba(255, 68, 68, 1),
+                0 0 25px rgba(255, 0, 0, 0.6),
+                inset 0 0 10px rgba(255, 100, 100, 0.8);
+        }
+        
+        .cylinder-chamber.bullet::before {
+            background: radial-gradient(circle, #ff0000 0%, #990000 100%);
+            box-shadow: inset 0 0 8px rgba(255, 0, 0, 1);
         }
         
         .cylinder-chamber.active {
-            background: #ffaa00;
-            border-color: #ff8800;
-            box-shadow: 0 0 15px rgba(255, 170, 0, 1);
+            background: radial-gradient(circle, #ffcc44 0%, #ff8800 100%);
+            border-color: #ffaa00;
+            box-shadow: 
+                0 0 20px rgba(255, 170, 0, 1),
+                0 0 30px rgba(255, 200, 0, 0.8),
+                inset 0 0 10px rgba(255, 220, 100, 0.9);
+            animation: activePulse 1s ease-in-out infinite;
+        }
+        
+        .cylinder-chamber.active::before {
+            background: radial-gradient(circle, #ffaa00 0%, #ff6600 100%);
+            box-shadow: inset 0 0 8px rgba(255, 200, 0, 1);
+        }
+        
+        @keyframes activePulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(255, 170, 0, 1),
+                    0 0 30px rgba(255, 200, 0, 0.8),
+                    inset 0 0 10px rgba(255, 220, 100, 0.9);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px rgba(255, 170, 0, 1.2),
+                    0 0 40px rgba(255, 200, 0, 1),
+                    inset 0 0 15px rgba(255, 220, 100, 1);
+            }
         }
         
         .result-overlay {
@@ -351,6 +480,147 @@
             font-size: 0.9em;
             color: rgba(255, 255, 255, 0.8);
         }
+        
+        .game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s;
+        }
+        
+        .game-overlay.show {
+            display: flex;
+        }
+        
+        .game-overlay-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            animation: scaleIn 0.5s;
+        }
+        
+        .game-overlay h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        
+        .game-overlay p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+        
+        .entered-players {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .entered-players h3 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #fff;
+            text-align: center;
+        }
+        
+        .entered-player {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .entered-player:last-child {
+            margin-bottom: 0;
+        }
+        
+        .tip-instruction {
+            background: rgba(255, 235, 59, 0.2);
+            border: 2px solid #ffeb3b;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #ffeb3b;
+            font-weight: 600;
+        }
+        
+        .blood-splatter {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1500;
+            overflow: hidden;
+        }
+        
+        .blood-drop {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #8b0000 0%, #5a0000 50%, transparent 100%);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            opacity: 0;
+            animation: splatter 1s ease-out forwards;
+        }
+        
+        @keyframes splatter {
+            0% {
+                opacity: 0;
+                transform: rotate(-45deg) scale(0) translate(0, 0);
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.8;
+                transform: rotate(-45deg) scale(1) translate(var(--tx), var(--ty));
+            }
+        }
+        
+        .blood-splatter-large {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(139, 0, 0, 0.8) 0%, rgba(90, 0, 0, 0.4) 50%, transparent 100%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: largeSplatter 0.8s ease-out forwards;
+        }
+        
+        @keyframes largeSplatter {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -363,12 +633,8 @@
                 <span id="gameStatus">Loading...</span>
             </div>
             <div class="stat-row">
-                <span>Pool A:</span>
-                <span class="pool pool-a" id="poolA">0 ETH</span>
-            </div>
-            <div class="stat-row">
-                <span>Pool B:</span>
-                <span class="pool pool-b" id="poolB">0 ETH</span>
+                <span>Pot Total:</span>
+                <span class="pool pool-a" id="potTotal">0 ETH</span>
             </div>
             <div class="stat-row">
                 <span>Death Chance:</span>
@@ -417,7 +683,150 @@
         </div>
     </div>
     
+    <!-- Game Over Screen -->
+    <div class="game-overlay" id="gameOverOverlay">
+        <div class="game-overlay-content">
+            <h2>💀 Game Over</h2>
+            <p id="gameOverMessage">The game has ended.</p>
+            <div id="gameOverPlayers"></div>
+        </div>
+    </div>
+    
+    <!-- Waiting Screen -->
+    <div class="game-overlay" id="waitingOverlay">
+        <div class="game-overlay-content">
+            <h2>💀 Bang Gang</h2>
+            <p>Tip ETH to join the game!</p>
+            <div class="tip-instruction">
+                💸 Send a tip of any amount to enter
+            </div>
+            <div class="entered-players">
+                <h3>Players Entered (<span id="enteredCount">0</span>)</h3>
+                <div id="enteredPlayersList">
+                    <p style="text-align: center; color: rgba(255, 255, 255, 0.6);">No players yet...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Blood Splatter Container -->
+    <div class="blood-splatter" id="bloodSplatter"></div>
+    
     <script>
+        // Audio context for sound effects
+        let audioContext = null;
+        
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.warn('Audio context not supported:', e);
+            }
+        }
+        
+        function playBangSound() {
+            if (!audioContext) {
+                initAudio();
+                if (!audioContext) return;
+            }
+            
+            try {
+                // Create a loud, sharp sound for BANG
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Sharp, loud frequency sweep
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                console.warn('Error playing bang sound:', e);
+            }
+        }
+        
+        function playClickSound() {
+            if (!audioContext) {
+                initAudio();
+                if (!audioContext) return;
+            }
+            
+            try {
+                // Create a metallic click sound
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // High frequency, quick click
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.05);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                console.warn('Error playing click sound:', e);
+            }
+        }
+        
+        function createBloodSplatter() {
+            const splatter = document.getElementById('bloodSplatter');
+            splatter.innerHTML = '';
+            
+            // Create large central splatter
+            const largeSplatter = document.createElement('div');
+            largeSplatter.className = 'blood-splatter-large';
+            largeSplatter.style.left = '50%';
+            largeSplatter.style.top = '50%';
+            largeSplatter.style.transform = 'translate(-50%, -50%)';
+            splatter.appendChild(largeSplatter);
+            
+            // Create multiple blood drops
+            const numDrops = 30;
+            for (let i = 0; i < numDrops; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'blood-drop';
+                
+                // Random position around center
+                const angle = (Math.PI * 2 * i) / numDrops + Math.random() * 0.5;
+                const distance = 100 + Math.random() * 200;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                drop.style.left = '50%';
+                drop.style.top = '50%';
+                drop.style.setProperty('--tx', `${tx}px`);
+                drop.style.setProperty('--ty', `${ty}px`);
+                
+                // Random size
+                const size = 15 + Math.random() * 25;
+                drop.style.width = `${size}px`;
+                drop.style.height = `${size}px`;
+                
+                // Random delay for staggered effect
+                drop.style.animationDelay = `${Math.random() * 0.2}s`;
+                
+                splatter.appendChild(drop);
+            }
+            
+            // Remove splatter after animation
+            setTimeout(() => {
+                splatter.innerHTML = '';
+            }, 2000);
+        }
+        
         const urlParams = new URLSearchParams(window.location.search);
         const channelId = urlParams.get('channelId') || '';
         const userId = urlParams.get('userId') || '';
@@ -503,23 +912,43 @@
             const isDeath = result.message && result.message.includes('BANG');
             
             if (isDeath) {
+                // BANG - Death!
                 emoji.className = 'result-death';
                 emoji.textContent = '💥';
                 text.textContent = 'BANG! You\'re out!';
                 text.style.color = '#f44336';
+                
+                // Play bang sound
+                playBangSound();
+                
+                // Create blood splatter effect
+                createBloodSplatter();
+                
+                // Show overlay
+                overlay.classList.add('show');
+                
+                // Hide after 4 seconds (longer for dramatic effect)
+                setTimeout(() => {
+                    overlay.classList.remove('show');
+                }, 4000);
             } else {
+                // Click - Safe!
                 emoji.className = 'result-safe';
                 emoji.textContent = '🔫';
                 text.textContent = 'Click! Safe!';
                 text.style.color = '#4CAF50';
+                
+                // Play click sound
+                playClickSound();
+                
+                // Show overlay
+                overlay.classList.add('show');
+                
+                // Hide after 2 seconds
+                setTimeout(() => {
+                    overlay.classList.remove('show');
+                }, 2000);
             }
-            
-            overlay.classList.add('show');
-            
-            // Hide after 3 seconds
-            setTimeout(() => {
-                overlay.classList.remove('show');
-            }, 3000);
         }
         
         async function fetchGameData() {
@@ -549,11 +978,22 @@
             const game = data.game;
             const isMyTurn = data.isMyTurn || false;
             
-            // Update game info
-            document.getElementById('gameStatus').textContent = 
-                game.state === 'active' ? 'Active' : game.state === 'waiting' ? 'Waiting' : 'Finished';
-            document.getElementById('poolA').textContent = game.poolA + ' ETH';
-            document.getElementById('poolB').textContent = game.poolB + ' ETH';
+            // Hide all overlays first
+            document.getElementById('gameOverOverlay').classList.remove('show');
+            document.getElementById('waitingOverlay').classList.remove('show');
+            
+            // Handle different game states
+            if (game.state === 'finished') {
+                showGameOverScreen(game);
+                return;
+            } else if (game.state === 'waiting') {
+                showWaitingScreen(game);
+                return;
+            }
+            
+            // Game is active - show normal gameplay
+            document.getElementById('gameStatus').textContent = 'Active';
+            document.getElementById('potTotal').textContent = game.poolA + ' ETH';
             
             const remainingChambers = 6 - game.gunChamber;
             const probability = remainingChambers > 0 ? ((1 / remainingChambers) * 100).toFixed(1) : '100';
@@ -597,6 +1037,60 @@
                 notYourTurn.style.display = 'none';
                 actionButtons.style.display = 'none';
             }
+        }
+        
+        function showGameOverScreen(game) {
+            const overlay = document.getElementById('gameOverOverlay');
+            const message = document.getElementById('gameOverMessage');
+            const playersDiv = document.getElementById('gameOverPlayers');
+            
+            // Find winner (last alive player)
+            const winner = game.players.find(p => p.isAlive);
+            
+            if (winner) {
+                message.innerHTML = `🏆 <strong>${winner.username || winner.userId}</strong> wins!<br><br>💰 Pot: ${game.poolA} ETH`;
+            } else {
+                message.textContent = 'The game has ended.';
+            }
+            
+            // Show all players
+            if (game.players && game.players.length > 0) {
+                playersDiv.innerHTML = `
+                    <div class="entered-players">
+                        <h3>Final Standings</h3>
+                        ${game.players.map((player, index) => `
+                            <div class="entered-player">
+                                ${player.isAlive ? '🏆' : '💀'} ${player.username || player.userId} ${player.isAlive ? '(Winner!)' : '(Eliminated)'}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                playersDiv.innerHTML = '';
+            }
+            
+            overlay.classList.add('show');
+        }
+        
+        function showWaitingScreen(game) {
+            const overlay = document.getElementById('waitingOverlay');
+            const countSpan = document.getElementById('enteredCount');
+            const playersList = document.getElementById('enteredPlayersList');
+            
+            const playerCount = game.players ? game.players.length : 0;
+            countSpan.textContent = playerCount;
+            
+            if (game.players && game.players.length > 0) {
+                playersList.innerHTML = game.players.map(player => `
+                    <div class="entered-player">
+                        💀 ${player.username || player.userId}
+                    </div>
+                `).join('');
+            } else {
+                playersList.innerHTML = '<p style="text-align: center; color: rgba(255, 255, 255, 0.6);">No players yet...</p>';
+            }
+            
+            overlay.classList.add('show');
         }
         
         function updateCylinder(currentChamber) {

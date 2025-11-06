@@ -190,10 +190,7 @@ bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentio
                 },
             )
 
-            // Start turn timer
-            gameManager.startTurnTimer(game, async (g, msg) => {
-                await sendGameMessage(g.channelId, msg)
-            })
+            // No turn timer - players take action manually via miniapp
         } else {
             await handler.sendMessage(channelId, `❌ ${result.message}`)
         }
@@ -298,7 +295,7 @@ bot.onSlashCommand('help', async (handler, { channelId }) => {
             '• Entry tips can be any amount (10% house rake)\n' +
             '• Passing costs 0.00015 ETH (goes to bonus pool)\n' +
             '• Surviving a shot earns 0.00015 ETH from bonus pool\n' +
-            '• 10 second timer per turn (auto-shoot on timeout)\n' +
+            '• Players take turns manually via miniapp\n' +
             '• Full table passes = forced shoot\n' +
             '• All amounts in Base Sepolia ETH',
     )

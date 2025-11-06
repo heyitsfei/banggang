@@ -337,8 +337,7 @@ export class GameManager {
                 this.advanceTurn(game)
             }
 
-            // Set up next turn timer
-            this.startTurnTimer(game, onAction)
+            // No auto-shoot timer - players must manually take action via miniapp
         }
 
         await onAction(game, resultMessage)
@@ -356,26 +355,17 @@ export class GameManager {
     }
 
     /**
-     * Start turn timer (auto-shoot after timeout)
+     * Start turn timer (DISABLED - no auto-shoot, players must act manually)
+     * This method is kept for compatibility but does nothing
      */
     public startTurnTimer(game: Game, onAction: GameActionCallback): void {
+        // Timer disabled - players must manually take action via miniapp
+        // Clear any existing timer
         if (game.turnTimer) {
             clearTimeout(game.turnTimer)
+            game.turnTimer = undefined
         }
-
-        const currentPlayer = game.alivePlayers[game.currentTurnIndex]
-        if (!currentPlayer) return
-
         game.turnStartTime = new Date()
-
-        const channelId = game.channelId
-        game.turnTimer = setTimeout(async () => {
-            const currentGame = this.games.get(channelId)
-            if (currentGame?.state === 'active' && currentGame.alivePlayers[currentGame.currentTurnIndex]?.userId === currentPlayer.userId) {
-                // Auto-shoot
-                await this.handleAction(channelId, currentPlayer.userId, 'shoot', onAction)
-            }
-        }, this.config.turnTimerSeconds * 1000)
     }
 
     /**
