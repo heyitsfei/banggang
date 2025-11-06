@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"","button":{"title":"Shoot","action":{"type":"launch_miniapp","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"","splashBackgroundColor":"#667eea"}}}' />
-    <meta name="fc:frame" content='{"version":"1","imageUrl":"","button":{"title":"Shoot","action":{"type":"launch_miniapp","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"","splashBackgroundColor":"#667eea"}}}' />
+    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://banggang.onrender.com/og-image.png","button":{"title":"🔫 Play Bang Gang","action":{"type":"launch_miniapp","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"https://banggang.onrender.com/splash.png","splashBackgroundColor":"#667eea"}}}' />
+    <!-- For backward compatibility -->
+    <meta name="fc:frame" content='{"version":"1","imageUrl":"https://banggang.onrender.com/og-image.png","button":{"title":"🔫 Play Bang Gang","action":{"type":"launch_frame","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"https://banggang.onrender.com/splash.png","splashBackgroundColor":"#667eea"}}}' />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bang Gang - Game</title>
     <style>
@@ -15,65 +16,206 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            color: white;
         }
         
         .container {
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            max-width: 500px;
             width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         h1 {
-            color: #333;
-            margin-bottom: 30px;
+            color: #fff;
+            margin-bottom: 20px;
             text-align: center;
-            font-size: 2.5em;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
-        .game-info {
-            background: #f8f9fa;
+        .gun-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            min-height: 200px;
+        }
+        
+        .gun {
+            position: relative;
+            width: 200px;
+            height: 150px;
+        }
+        
+        .gun-body {
+            position: absolute;
+            width: 180px;
+            height: 40px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            border-radius: 20px;
+            top: 55px;
+            left: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .gun-barrel {
+            position: absolute;
+            width: 120px;
+            height: 30px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-radius: 15px;
+            top: 60px;
+            left: 70px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .cylinder {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            top: 35px;
+            left: 60px;
+            transform-origin: center;
+            transition: transform 0.1s linear;
+        }
+        
+        .cylinder.spinning {
+            animation: spin 0.5s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .cylinder-chamber {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 50%;
+            transform-origin: 40px 40px;
+        }
+        
+        .cylinder-chamber:nth-child(1) { transform: rotate(0deg) translateX(40px); }
+        .cylinder-chamber:nth-child(2) { transform: rotate(60deg) translateX(40px); }
+        .cylinder-chamber:nth-child(3) { transform: rotate(120deg) translateX(40px); }
+        .cylinder-chamber:nth-child(4) { transform: rotate(180deg) translateX(40px); }
+        .cylinder-chamber:nth-child(5) { transform: rotate(240deg) translateX(40px); }
+        .cylinder-chamber:nth-child(6) { transform: rotate(300deg) translateX(40px); }
+        
+        .cylinder-chamber.bullet {
+            background: #ff4444;
+            border-color: #ff0000;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
+        }
+        
+        .cylinder-chamber.active {
+            background: #ffaa00;
+            border-color: #ff8800;
+            box-shadow: 0 0 15px rgba(255, 170, 0, 1);
+        }
+        
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        .result-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .result-content {
+            text-align: center;
+            animation: scaleIn 0.5s;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .result-safe {
+            font-size: 4em;
+            color: #4CAF50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+            animation: pulse 1s infinite;
+        }
+        
+        .result-death {
+            font-size: 4em;
+            color: #f44336;
+            text-shadow: 0 0 30px rgba(244, 67, 54, 1);
+            animation: shake 0.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            75% { transform: translateX(10px) rotate(5deg); }
+        }
+        
+        .result-text {
+            font-size: 2em;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .game-stats {
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 20px;
         }
         
-        .info-row {
+        .stat-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9em;
         }
         
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        
-        .label {
-            font-weight: 600;
-            color: #666;
-        }
-        
-        .value {
-            color: #333;
-            font-weight: 500;
+        .stat-row:last-child {
+            margin-bottom: 0;
         }
         
         .pool {
             display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 3px 10px;
+            border-radius: 15px;
             font-weight: 600;
-            margin-left: 10px;
+            font-size: 0.85em;
         }
         
         .pool-a {
@@ -86,34 +228,41 @@
             color: white;
         }
         
-        .players {
+        .players-list {
             margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
         }
         
         .player {
-            background: #fff;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.9em;
         }
         
         .player.alive {
-            border-color: #4CAF50;
+            border-left: 3px solid #4CAF50;
         }
         
         .player.dead {
-            border-color: #f44336;
+            border-left: 3px solid #f44336;
             opacity: 0.6;
         }
         
+        .player.current-turn {
+            background: rgba(255, 235, 59, 0.2);
+            border-left: 3px solid #ffeb3b;
+        }
+        
         .status-badge {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.85em;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
             font-weight: 600;
         }
         
@@ -127,25 +276,18 @@
             color: white;
         }
         
-        .current-turn {
-            background: #ffeb3b;
-            border-color: #ffc107;
-            box-shadow: 0 0 20px rgba(255, 235, 59, 0.5);
-        }
-        
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
-            justify-content: center;
+            margin-top: 20px;
         }
         
         .action-button {
             flex: 1;
-            padding: 20px 30px;
+            padding: 15px 20px;
             border: none;
-            border-radius: 15px;
-            font-size: 1.2em;
+            border-radius: 12px;
+            font-size: 1.1em;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -153,12 +295,12 @@
             letter-spacing: 1px;
         }
         
-        .action-button:hover {
+        .action-button:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
         
-        .action-button:active {
+        .action-button:active:not(:disabled) {
             transform: translateY(0);
         }
         
@@ -167,7 +309,7 @@
             color: white;
         }
         
-        .shoot-button:hover {
+        .shoot-button:hover:not(:disabled) {
             background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
         }
         
@@ -176,32 +318,38 @@
             color: white;
         }
         
-        .pass-button:hover {
+        .pass-button:hover:not(:disabled) {
             background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
         }
         
         .action-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
         
         .turn-indicator {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+            background: rgba(255, 235, 59, 0.2);
+            border: 2px solid #ffeb3b;
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
             text-align: center;
             font-weight: 600;
-            color: #856404;
+            color: #ffeb3b;
         }
         
         .not-your-turn {
             text-align: center;
-            color: #666;
+            color: rgba(255, 255, 255, 0.6);
             padding: 20px;
             font-style: italic;
+        }
+        
+        .chamber-indicator {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
         }
     </style>
 </head>
@@ -209,39 +357,40 @@
     <div class="container">
         <h1>💀 Bang Gang</h1>
         
-        <div class="game-info">
-            <div class="info-row">
-                <span class="label">Game Status:</span>
-                <span class="value" id="gameStatus">Loading...</span>
+        <div class="game-stats">
+            <div class="stat-row">
+                <span>Status:</span>
+                <span id="gameStatus">Loading...</span>
             </div>
-            <div class="info-row">
-                <span class="label">Pool A (Winnings):</span>
-                <span class="value">
-                    <span class="pool pool-a" id="poolA">0 ETH</span>
-                </span>
+            <div class="stat-row">
+                <span>Pool A:</span>
+                <span class="pool pool-a" id="poolA">0 ETH</span>
             </div>
-            <div class="info-row">
-                <span class="label">Pool B (Bonus):</span>
-                <span class="value">
-                    <span class="pool pool-b" id="poolB">0 ETH</span>
-                </span>
+            <div class="stat-row">
+                <span>Pool B:</span>
+                <span class="pool pool-b" id="poolB">0 ETH</span>
             </div>
-            <div class="info-row">
-                <span class="label">Chamber:</span>
-                <span class="value" id="chamber">-</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Death Probability:</span>
-                <span class="value" id="probability">-</span>
+            <div class="stat-row">
+                <span>Death Chance:</span>
+                <span id="probability">-</span>
             </div>
         </div>
         
-        <div class="players">
-            <h2 style="margin-bottom: 15px; color: #333;">Players</h2>
-            <div id="playersList">
-                <p style="color: #666; text-align: center;">Loading players...</p>
+        <div class="gun-container">
+            <div class="gun">
+                <div class="gun-body"></div>
+                <div class="gun-barrel"></div>
+                <div class="cylinder" id="cylinder">
+                    <div class="cylinder-chamber" id="chamber0"></div>
+                    <div class="cylinder-chamber" id="chamber1"></div>
+                    <div class="cylinder-chamber" id="chamber2"></div>
+                    <div class="cylinder-chamber" id="chamber3"></div>
+                    <div class="cylinder-chamber" id="chamber4"></div>
+                    <div class="cylinder-chamber" id="chamber5"></div>
+                </div>
             </div>
         </div>
+        <div class="chamber-indicator" id="chamberIndicator">Chamber: -</div>
         
         <div id="turnIndicator" class="turn-indicator" style="display: none;">
             ⏱️ It's your turn! Choose an action:
@@ -255,31 +404,62 @@
             <button id="shootButton" class="action-button shoot-button">🔫 Shoot</button>
             <button id="passButton" class="action-button pass-button">💨 Pass</button>
         </div>
+        
+        <div class="players-list" id="playersList">
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.6);">Loading players...</p>
+        </div>
+    </div>
+    
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-content">
+            <div id="resultEmoji"></div>
+            <div class="result-text" id="resultText"></div>
+        </div>
     </div>
     
     <script>
-        // Get user info from URL params or Towns Protocol context
         const urlParams = new URLSearchParams(window.location.search);
         const channelId = urlParams.get('channelId') || '';
         const userId = urlParams.get('userId') || '';
         const baseUrl = window.location.origin;
         
+        let currentGameData = null;
+        let isShooting = false;
+        
         // Button handlers
         document.getElementById('shootButton').addEventListener('click', async () => {
-            await sendCommand('shoot');
+            if (isShooting) return;
+            await performShoot();
         });
         
         document.getElementById('passButton').addEventListener('click', async () => {
+            if (isShooting) return;
             await sendCommand('pass');
         });
         
+        async function performShoot() {
+            if (isShooting) return;
+            isShooting = true;
+            
+            const buttons = document.querySelectorAll('.action-button');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // Start spinning animation
+            const cylinder = document.getElementById('cylinder');
+            cylinder.classList.add('spinning');
+            
+            // Send shoot command
+            await sendCommand('shoot');
+            
+            // Stop spinning after animation
+            setTimeout(() => {
+                cylinder.classList.remove('spinning');
+                isShooting = false;
+            }, 2000);
+        }
+        
         async function sendCommand(command) {
             try {
-                // Disable buttons while processing
-                const buttons = document.querySelectorAll('.action-button');
-                buttons.forEach(btn => btn.disabled = true);
-                
-                // Send command to bot via API
                 const response = await fetch(`${baseUrl}/api/command`, {
                     method: 'POST',
                     headers: {
@@ -295,21 +475,51 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    // Show success message
-                    alert(result.message || `Command "${command}" sent successfully!`);
+                    if (command === 'shoot') {
+                        // Show result animation
+                        await showShootResult(result);
+                    }
                     // Refresh game data
-                    await fetchGameData();
+                    setTimeout(() => {
+                        fetchGameData();
+                    }, 2000);
                 } else {
-                    alert(result.message || `Error: ${result.error}`);
-                    // Re-enable buttons
-                    buttons.forEach(btn => btn.disabled = false);
+                    alert(result.error || result.message || 'Error occurred');
+                    document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 }
             } catch (error) {
                 console.error('Error sending command:', error);
                 alert('Failed to send command. Please try again.');
-                // Re-enable buttons
                 document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
             }
+        }
+        
+        async function showShootResult(result) {
+            const overlay = document.getElementById('resultOverlay');
+            const emoji = document.getElementById('resultEmoji');
+            const text = document.getElementById('resultText');
+            
+            // Determine if safe or death based on result message
+            const isDeath = result.message && result.message.includes('BANG');
+            
+            if (isDeath) {
+                emoji.className = 'result-death';
+                emoji.textContent = '💥';
+                text.textContent = 'BANG! You\'re out!';
+                text.style.color = '#f44336';
+            } else {
+                emoji.className = 'result-safe';
+                emoji.textContent = '🔫';
+                text.textContent = 'Click! Safe!';
+                text.style.color = '#4CAF50';
+            }
+            
+            overlay.classList.add('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                overlay.classList.remove('show');
+            }, 3000);
         }
         
         async function fetchGameData() {
@@ -319,11 +529,12 @@
             }
             
             try {
-                const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}`);
+                const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&userId=${userId}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch game data');
                 }
                 const data = await response.json();
+                currentGameData = data;
                 updateGameDisplay(data);
             } catch (error) {
                 console.error('Error fetching game data:', error);
@@ -339,14 +550,18 @@
             const isMyTurn = data.isMyTurn || false;
             
             // Update game info
-            document.getElementById('gameStatus').textContent = game.state === 'active' ? 'Active' : game.state === 'waiting' ? 'Waiting' : 'Finished';
+            document.getElementById('gameStatus').textContent = 
+                game.state === 'active' ? 'Active' : game.state === 'waiting' ? 'Waiting' : 'Finished';
             document.getElementById('poolA').textContent = game.poolA + ' ETH';
             document.getElementById('poolB').textContent = game.poolB + ' ETH';
-            document.getElementById('chamber').textContent = game.gunChamber + 1 + '/6';
             
             const remainingChambers = 6 - game.gunChamber;
             const probability = remainingChambers > 0 ? ((1 / remainingChambers) * 100).toFixed(1) : '100';
             document.getElementById('probability').textContent = probability + '%';
+            document.getElementById('chamberIndicator').textContent = `Chamber: ${game.gunChamber + 1}/6`;
+            
+            // Update cylinder visualization
+            updateCylinder(game.gunChamber);
             
             // Update players list
             const playersList = document.getElementById('playersList');
@@ -357,7 +572,7 @@
                         <div class="player ${player.isAlive ? 'alive' : 'dead'} ${isCurrentTurn ? 'current-turn' : ''}">
                             <span>${player.username || player.userId}</span>
                             <span class="status-badge ${player.isAlive ? 'status-alive' : 'status-dead'}">
-                                ${player.isAlive ? 'Alive' : 'Dead'}${isCurrentTurn ? ' (Current Turn)' : ''}
+                                ${player.isAlive ? 'Alive' : 'Dead'}${isCurrentTurn ? ' ⏱️' : ''}
                             </span>
                         </div>
                     `;
@@ -384,13 +599,26 @@
             }
         }
         
+        function updateCylinder(currentChamber) {
+            // Reset all chambers
+            for (let i = 0; i < 6; i++) {
+                const chamber = document.getElementById(`chamber${i}`);
+                chamber.classList.remove('active', 'bullet');
+            }
+            
+            // Highlight current chamber
+            const activeChamber = document.getElementById(`chamber${currentChamber}`);
+            if (activeChamber) {
+                activeChamber.classList.add('active');
+            }
+        }
+        
         // Initial load
         if (channelId) {
             fetchGameData();
-            // Refresh every 3 seconds
-            setInterval(fetchGameData, 3000);
+            // Refresh every 2 seconds
+            setInterval(fetchGameData, 2000);
         }
     </script>
 </body>
 </html>
-
