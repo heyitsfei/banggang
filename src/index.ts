@@ -408,44 +408,51 @@ function getBaseUrl(): string {
 
 // API endpoint to get game data
 app.get('/api/game', (c) => {
-    const channelId = c.req.query('channelId')
-    const userId = c.req.query('userId')
-    
-    if (!channelId) {
-        return c.json({ error: 'channelId is required' }, 400)
+    try {
+        const channelId = c.req.query('channelId')
+        const userId = c.req.query('userId')
+        
+        if (!channelId) {
+            return c.json({ error: 'channelId is required' }, 400)
+        }
+        
+        const game = gameManager.getGame(channelId)
+        if (!game) {
+            return c.json({ error: 'No game found for this channel. Start a new game with /start' }, 404)
+        }
+        
+        // Check if it's the user's turn
+        let isMyTurn = false
+        if (userId && game.state === 'active' && game.alivePlayers.length > 0) {
+            const currentPlayer = game.alivePlayers[game.currentTurnIndex]
+            if (currentPlayer) {
+                isMyTurn = currentPlayer.userId.toLowerCase() === userId.toLowerCase()
+            }
+        }
+        
+        // Format game data for frontend
+        const gameData = {
+            game: {
+                state: game.state,
+                poolA: formatAmount(game.poolA),
+                poolB: formatAmount(game.poolB),
+                gunChamber: game.gunChamber,
+                currentTurnIndex: game.currentTurnIndex,
+                forcedShoot: game.forcedShoot,
+                players: game.players.map(p => ({
+                    userId: p.userId,
+                    username: p.displayName,
+                    isAlive: p.isAlive,
+                })),
+            },
+            isMyTurn,
+        }
+        
+        return c.json(gameData)
+    } catch (error) {
+        console.error('Error in /api/game:', error)
+        return c.json({ error: 'Internal server error' }, 500)
     }
-    
-    const game = gameManager.getGame(channelId)
-    if (!game) {
-        return c.json({ error: 'No game found' }, 404)
-    }
-    
-    // Check if it's the user's turn
-    let isMyTurn = false
-    if (userId && game.state === 'active' && game.alivePlayers.length > 0) {
-        const currentPlayer = game.alivePlayers[game.currentTurnIndex]
-        isMyTurn = currentPlayer?.userId.toLowerCase() === userId.toLowerCase()
-    }
-    
-    // Format game data for frontend
-    const gameData = {
-        game: {
-            state: game.state,
-            poolA: formatAmount(game.poolA),
-            poolB: formatAmount(game.poolB),
-            gunChamber: game.gunChamber,
-            currentTurnIndex: game.currentTurnIndex,
-            forcedShoot: game.forcedShoot,
-            players: game.players.map(p => ({
-                userId: p.userId,
-                username: p.displayName,
-                isAlive: p.isAlive,
-            })),
-        },
-        isMyTurn,
-    }
-    
-    return c.json(gameData)
 })
 
 // API endpoint to send commands

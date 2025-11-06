@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bang Gang - Game</title>
+    
+    <!-- Open Graph meta tags for rich card preview -->
+    <meta property="og:title" content="💀 Bang Gang - Russian Roulette Tipping Game" />
+    <meta property="og:description" content="Tip to enter. Pull the trigger. Pray for clicks. Win the pot." />
+    <meta property="og:image" content="https://banggang.onrender.com/og-image.png" />
+    <meta property="og:url" content="https://banggang.onrender.com/game" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Farcaster miniapp meta tags -->
     <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://banggang.onrender.com/og-image.png","button":{"title":"🔫 Play Bang Gang","action":{"type":"launch_miniapp","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"https://banggang.onrender.com/splash.png","splashBackgroundColor":"#667eea"}}}' />
     <!-- For backward compatibility -->
     <meta name="fc:frame" content='{"version":"1","imageUrl":"https://banggang.onrender.com/og-image.png","button":{"title":"🔫 Play Bang Gang","action":{"type":"launch_frame","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"https://banggang.onrender.com/splash.png","splashBackgroundColor":"#667eea"}}}' />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bang Gang - Game</title>
     <style>
         * {
             margin: 0;
@@ -953,20 +962,50 @@
         
         async function fetchGameData() {
             if (!channelId) {
-                console.log('No channelId provided');
+                showError('No channel ID provided. Please open the game from the Towns channel.');
                 return;
             }
             
             try {
                 const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&userId=${userId}`);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch game data');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Failed to fetch game data (${response.status})`);
                 }
                 const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
                 currentGameData = data;
+                hideError();
                 updateGameDisplay(data);
             } catch (error) {
                 console.error('Error fetching game data:', error);
+                showError(error.message || 'Failed to load game. Please try refreshing.');
+            }
+        }
+        
+        function showError(message) {
+            const gameStatus = document.getElementById('gameStatus');
+            if (gameStatus) {
+                gameStatus.textContent = `Error: ${message}`;
+                gameStatus.style.color = '#f44336';
+            }
+            
+            // Also show in players list
+            const playersList = document.getElementById('playersList');
+            if (playersList) {
+                playersList.innerHTML = `<p style="text-align: center; color: #f44336; padding: 20px;">❌ ${message}</p>`;
+            }
+        }
+        
+        function hideError() {
+            const gameStatus = document.getElementById('gameStatus');
+            if (gameStatus) {
+                gameStatus.style.color = '';
             }
         }
         
@@ -1112,6 +1151,9 @@
             fetchGameData();
             // Refresh every 2 seconds
             setInterval(fetchGameData, 2000);
+        } else {
+            // Show error if no channelId
+            showError('No channel ID provided. Please open the game from the Towns channel.');
         }
     </script>
 </body>
