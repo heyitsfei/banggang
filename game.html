@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"","button":{"title":"Shoot","action":{"type":"launch_miniapp","name":"Bang Gang","url":"","splashImageUrl":"","splashBackgroundColor":"#667eea"}}}' />
+    <!-- Backward compatibility -->
+    <meta name="fc:frame" content='{"version":"1","imageUrl":"","button":{"title":"Shoot","action":{"type":"launch_miniapp","name":"Bang Gang","url":"","splashImageUrl":"","splashBackgroundColor":"#667eea"}}}' />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bang Gang - Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5em;
+        }
+        
+        .game-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .pool {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .pool-a {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .pool-b {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .players {
+            margin-top: 20px;
+        }
+        
+        .player {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player.alive {
+            border-color: #4CAF50;
+        }
+        
+        .player.dead {
+            border-color: #f44336;
+            opacity: 0.6;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .status-alive {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-dead {
+            background: #f44336;
+            color: white;
+        }
+        
+        .current-turn {
+            background: #ffeb3b;
+            border-color: #ffc107;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.5);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .action-button {
+            flex: 1;
+            padding: 20px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-button:active {
+            transform: translateY(0);
+        }
+        
+        .shoot-button {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+        
+        .shoot-button:hover {
+            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        }
+        
+        .pass-button {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+        }
+        
+        .pass-button:hover {
+            background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+        }
+        
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .turn-indicator {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .not-your-turn {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💀 Bang Gang</h1>
+        
+        <div class="game-info">
+            <div class="info-row">
+                <span class="label">Game Status:</span>
+                <span class="value" id="gameStatus">Loading...</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Pool A (Winnings):</span>
+                <span class="value">
+                    <span class="pool pool-a" id="poolA">0 ETH</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="label">Pool B (Bonus):</span>
+                <span class="value">
+                    <span class="pool pool-b" id="poolB">0 ETH</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="label">Chamber:</span>
+                <span class="value" id="chamber">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Death Probability:</span>
+                <span class="value" id="probability">-</span>
+            </div>
+        </div>
+        
+        <div class="players">
+            <h2 style="margin-bottom: 15px; color: #333;">Players</h2>
+            <div id="playersList">
+                <p style="color: #666; text-align: center;">Loading players...</p>
+            </div>
+        </div>
+        
+        <div id="turnIndicator" class="turn-indicator" style="display: none;">
+            ⏱️ It's your turn! Choose an action:
+        </div>
+        
+        <div id="notYourTurn" class="not-your-turn" style="display: none;">
+            Waiting for your turn...
+        </div>
+        
+        <div id="actionButtons" class="action-buttons" style="display: none;">
+            <button id="shootButton" class="action-button shoot-button">🔫 Shoot</button>
+            <button id="passButton" class="action-button pass-button">💨 Pass</button>
+        </div>
+    </div>
+    
+    <script>
+        // Get user info from URL params or Towns Protocol context
+        const urlParams = new URLSearchParams(window.location.search);
+        const channelId = urlParams.get('channelId') || '';
+        const userId = urlParams.get('userId') || '';
+        const baseUrl = window.location.origin;
+        
+        // Button handlers
+        document.getElementById('shootButton').addEventListener('click', async () => {
+            await sendCommand('shoot');
+        });
+        
+        document.getElementById('passButton').addEventListener('click', async () => {
+            await sendCommand('pass');
+        });
+        
+        async function sendCommand(command) {
+            try {
+                // Disable buttons while processing
+                const buttons = document.querySelectorAll('.action-button');
+                buttons.forEach(btn => btn.disabled = true);
+                
+                // Send command to bot via API
+                const response = await fetch(`${baseUrl}/api/command`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: command,
+                        channelId: channelId,
+                        userId: userId,
+                    }),
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alert(result.message || `Command "${command}" sent successfully!`);
+                    // Refresh game data
+                    await fetchGameData();
+                } else {
+                    alert(result.message || `Error: ${result.error}`);
+                    // Re-enable buttons
+                    buttons.forEach(btn => btn.disabled = false);
+                }
+            } catch (error) {
+                console.error('Error sending command:', error);
+                alert('Failed to send command. Please try again.');
+                // Re-enable buttons
+                document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
+            }
+        }
+        
+        async function fetchGameData() {
+            if (!channelId) {
+                console.log('No channelId provided');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch game data');
+                }
+                const data = await response.json();
+                updateGameDisplay(data);
+            } catch (error) {
+                console.error('Error fetching game data:', error);
+            }
+        }
+        
+        function updateGameDisplay(data) {
+            if (!data || !data.game) {
+                return;
+            }
+            
+            const game = data.game;
+            const isMyTurn = data.isMyTurn || false;
+            
+            // Update game info
+            document.getElementById('gameStatus').textContent = game.state === 'active' ? 'Active' : game.state === 'waiting' ? 'Waiting' : 'Finished';
+            document.getElementById('poolA').textContent = game.poolA + ' ETH';
+            document.getElementById('poolB').textContent = game.poolB + ' ETH';
+            document.getElementById('chamber').textContent = game.gunChamber + 1 + '/6';
+            
+            const remainingChambers = 6 - game.gunChamber;
+            const probability = remainingChambers > 0 ? ((1 / remainingChambers) * 100).toFixed(1) : '100';
+            document.getElementById('probability').textContent = probability + '%';
+            
+            // Update players list
+            const playersList = document.getElementById('playersList');
+            if (game.players && game.players.length > 0) {
+                playersList.innerHTML = game.players.map((player, index) => {
+                    const isCurrentTurn = game.state === 'active' && game.currentTurnIndex === index;
+                    return `
+                        <div class="player ${player.isAlive ? 'alive' : 'dead'} ${isCurrentTurn ? 'current-turn' : ''}">
+                            <span>${player.username || player.userId}</span>
+                            <span class="status-badge ${player.isAlive ? 'status-alive' : 'status-dead'}">
+                                ${player.isAlive ? 'Alive' : 'Dead'}${isCurrentTurn ? ' (Current Turn)' : ''}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Show/hide action buttons based on turn
+            const turnIndicator = document.getElementById('turnIndicator');
+            const notYourTurn = document.getElementById('notYourTurn');
+            const actionButtons = document.getElementById('actionButtons');
+            
+            if (game.state === 'active' && isMyTurn) {
+                turnIndicator.style.display = 'block';
+                notYourTurn.style.display = 'none';
+                actionButtons.style.display = 'flex';
+            } else if (game.state === 'active') {
+                turnIndicator.style.display = 'none';
+                notYourTurn.style.display = 'block';
+                actionButtons.style.display = 'none';
+            } else {
+                turnIndicator.style.display = 'none';
+                notYourTurn.style.display = 'none';
+                actionButtons.style.display = 'none';
+            }
+        }
+        
+        // Initial load
+        if (channelId) {
+            fetchGameData();
+            // Refresh every 3 seconds
+            setInterval(fetchGameData, 3000);
+        }
+    </script>
+</body>
+</html>
+

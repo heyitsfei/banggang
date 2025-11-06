@@ -1,6 +1,8 @@
 import { makeTownsBot } from '@towns-protocol/bot'
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import commands from './commands'
 import { GameManager } from './gameManager'
 import { formatAmount } from './game'
@@ -169,6 +171,8 @@ bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentio
         if (result.success && result.game) {
             const game = result.game
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
+            const baseUrl = getBaseUrl()
+            const gameUrl = `${baseUrl}/game?channelId=${channelId}&userId=${currentPlayer.userId}`
 
             await handler.sendMessage(
                 channelId,
@@ -178,6 +182,12 @@ bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentio
                     `Gun loaded...\n\n` +
                     `⏱️ <@${currentPlayer.userId}> your turn!\n` +
                     `Use /shoot or /pass`,
+                {
+                    attachments: [{
+                        type: 'link',
+                        url: gameUrl,
+                    }],
+                },
             )
 
             // Start turn timer
@@ -203,18 +213,33 @@ bot.onSlashCommand('shoot', async (handler, { channelId, userId }) => {
     const result = await gameManager.handleAction(channelId, userId, 'shoot', async (game, message) => {
         await sendGameMessage(game.channelId, message)
 
-        // If game is still active, show next turn
+        // If game is still active, show next turn with miniapp link
         if (game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
+            const baseUrl = getBaseUrl()
+            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&userId=${currentPlayer.userId}`
+            
             if (game.forcedShoot) {
-                await sendGameMessage(
+                await bot.sendMessage(
                     game.channelId,
                     `⚠️ <@${currentPlayer.userId}> must /shoot!`,
+                    {
+                        attachments: [{
+                            type: 'link',
+                            url: gameUrl,
+                        }],
+                    },
                 )
             } else {
-                await sendGameMessage(
+                await bot.sendMessage(
                     game.channelId,
                     `⏱️ <@${currentPlayer.userId}> your turn!\nUse /shoot or /pass`,
+                    {
+                        attachments: [{
+                            type: 'link',
+                            url: gameUrl,
+                        }],
+                    },
                 )
             }
         }
@@ -230,18 +255,33 @@ bot.onSlashCommand('pass', async (handler, { channelId, userId }) => {
     const result = await gameManager.handleAction(channelId, userId, 'pass', async (game, message) => {
         await sendGameMessage(game.channelId, message)
 
-        // Show next turn
+        // Show next turn with miniapp link
         if (game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
+            const baseUrl = getBaseUrl()
+            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&userId=${currentPlayer.userId}`
+            
             if (game.forcedShoot) {
-                await sendGameMessage(
+                await bot.sendMessage(
                     game.channelId,
                     `⚠️ <@${currentPlayer.userId}> must /shoot!`,
+                    {
+                        attachments: [{
+                            type: 'link',
+                            url: gameUrl,
+                        }],
+                    },
                 )
             } else {
-                await sendGameMessage(
+                await bot.sendMessage(
                     game.channelId,
                     `⏱️ <@${currentPlayer.userId}> your turn!\nUse /shoot or /pass`,
+                    {
+                        attachments: [{
+                            type: 'link',
+                            url: gameUrl,
+                        }],
+                    },
                 )
             }
         }
@@ -328,5 +368,143 @@ const { jwtMiddleware, handler } = bot.start()
 const app = new Hono()
 app.use(logger())
 app.post('/webhook', jwtMiddleware, handler)
+
+// Serve game.html page
+app.get('/game.html', (c) => {
+    try {
+        const htmlPath = join(process.cwd(), 'game.html')
+        const html = readFileSync(htmlPath, 'utf-8')
+        return c.html(html)
+    } catch (error) {
+        return c.text('Error loading game.html', 500)
+    }
+})
+
+// Also serve at /game for convenience
+app.get('/game', (c) => {
+    try {
+        const htmlPath = join(process.cwd(), 'game.html')
+        const html = readFileSync(htmlPath, 'utf-8')
+        return c.html(html)
+    } catch (error) {
+        return c.text('Error loading game.html', 500)
+    }
+})
+
+// Get base URL for miniapp links
+function getBaseUrl(): string {
+    const port = process.env.PORT || '3000'
+    // In production, you should set BASE_URL env var to your actual domain
+    const baseUrl = process.env.BASE_URL || `http://localhost:${port}`
+    return baseUrl
+}
+
+// API endpoint to get game data
+app.get('/api/game', (c) => {
+    const channelId = c.req.query('channelId')
+    const userId = c.req.query('userId')
+    
+    if (!channelId) {
+        return c.json({ error: 'channelId is required' }, 400)
+    }
+    
+    const game = gameManager.getGame(channelId)
+    if (!game) {
+        return c.json({ error: 'No game found' }, 404)
+    }
+    
+    // Check if it's the user's turn
+    let isMyTurn = false
+    if (userId && game.state === 'active' && game.alivePlayers.length > 0) {
+        const currentPlayer = game.alivePlayers[game.currentTurnIndex]
+        isMyTurn = currentPlayer?.userId.toLowerCase() === userId.toLowerCase()
+    }
+    
+    // Format game data for frontend
+    const gameData = {
+        game: {
+            state: game.state,
+            poolA: formatAmount(game.poolA),
+            poolB: formatAmount(game.poolB),
+            gunChamber: game.gunChamber,
+            currentTurnIndex: game.currentTurnIndex,
+            forcedShoot: game.forcedShoot,
+            players: game.players.map(p => ({
+                userId: p.userId,
+                username: p.displayName,
+                isAlive: p.isAlive,
+            })),
+        },
+        isMyTurn,
+    }
+    
+    return c.json(gameData)
+})
+
+// API endpoint to send commands
+app.post('/api/command', async (c) => {
+    try {
+        const body = await c.req.json()
+        const { command, channelId, userId } = body
+        
+        if (!command || !channelId || !userId) {
+            return c.json({ success: false, error: 'Missing required fields' }, 400)
+        }
+        
+        if (command !== 'shoot' && command !== 'pass') {
+            return c.json({ success: false, error: 'Invalid command' }, 400)
+        }
+        
+        // Process the command through game manager
+        const result = await gameManager.handleAction(
+            channelId,
+            userId,
+            command,
+            async (game, message) => {
+                await sendGameMessage(game.channelId, message)
+                
+                // Show next turn with miniapp link if game is still active
+                if (game.state === 'active' && game.alivePlayers.length > 0) {
+                    const currentPlayer = game.alivePlayers[game.currentTurnIndex]
+                    const baseUrl = getBaseUrl()
+                    const gameUrl = `${baseUrl}/game?channelId=${channelId}&userId=${currentPlayer.userId}`
+                    
+                    if (game.forcedShoot) {
+                        await bot.sendMessage(
+                            game.channelId,
+                            `⚠️ <@${currentPlayer.userId}> must /shoot!`,
+                            {
+                                attachments: [{
+                                    type: 'link',
+                                    url: gameUrl,
+                                }],
+                            },
+                        )
+                    } else {
+                        await bot.sendMessage(
+                            game.channelId,
+                            `⏱️ <@${currentPlayer.userId}> your turn!\nUse /shoot or /pass`,
+                            {
+                                attachments: [{
+                                    type: 'link',
+                                    url: gameUrl,
+                                }],
+                            },
+                        )
+                    }
+                }
+            },
+        )
+        
+        if (result.success) {
+            return c.json({ success: true, message: result.message })
+        } else {
+            return c.json({ success: false, error: result.message }, 400)
+        }
+    } catch (error) {
+        console.error('Error processing command:', error)
+        return c.json({ success: false, error: 'Internal server error' }, 500)
+    }
+})
 
 export default app
