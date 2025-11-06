@@ -176,7 +176,7 @@ bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentio
                     `Players: ${game.alivePlayers.length}\n` +
                     `💰 Pool A: ${formatAmount(game.poolA)} ETH | 🔥 Pool B: ${formatAmount(game.poolB)} ETH\n` +
                     `Gun loaded...\n\n` +
-                    `⏱️ <@${currentPlayer.userId}> your turn! (10s)\n` +
+                    `⏱️ <@${currentPlayer.userId}> your turn!\n` +
                     `Use /shoot or /pass`,
             )
 
@@ -209,12 +209,12 @@ bot.onSlashCommand('shoot', async (handler, { channelId, userId }) => {
             if (game.forcedShoot) {
                 await sendGameMessage(
                     game.channelId,
-                    `⚠️ <@${currentPlayer.userId}> must /shoot! (10s)`,
+                    `⚠️ <@${currentPlayer.userId}> must /shoot!`,
                 )
             } else {
                 await sendGameMessage(
                     game.channelId,
-                    `⏱️ <@${currentPlayer.userId}> your turn! (10s)\nUse /shoot or /pass`,
+                    `⏱️ <@${currentPlayer.userId}> your turn!\nUse /shoot or /pass`,
                 )
             }
         }
@@ -236,12 +236,12 @@ bot.onSlashCommand('pass', async (handler, { channelId, userId }) => {
             if (game.forcedShoot) {
                 await sendGameMessage(
                     game.channelId,
-                    `⚠️ <@${currentPlayer.userId}> must /shoot! (10s)`,
+                    `⚠️ <@${currentPlayer.userId}> must /shoot!`,
                 )
             } else {
                 await sendGameMessage(
                     game.channelId,
-                    `⏱️ <@${currentPlayer.userId}> your turn! (10s)\nUse /shoot or /pass`,
+                    `⏱️ <@${currentPlayer.userId}> your turn!\nUse /shoot or /pass`,
                 )
             }
         }

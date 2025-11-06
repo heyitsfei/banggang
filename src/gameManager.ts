@@ -367,27 +367,9 @@ export class GameManager {
         if (!currentPlayer) return
 
         game.turnStartTime = new Date()
-        let secondsLeft = this.config.turnTimerSeconds
-
-        // Send countdown updates
-        const countdownInterval = setInterval(async () => {
-            if (game.state !== 'active' || !game.turnTimer) {
-                clearInterval(countdownInterval)
-                return
-            }
-
-            secondsLeft--
-            if (secondsLeft > 0 && secondsLeft <= 5) {
-                await onAction(
-                    game,
-                    `⏱️ <@${currentPlayer.userId}> ${secondsLeft}s remaining...`,
-                )
-            }
-        }, 1000)
 
         const channelId = game.channelId
         game.turnTimer = setTimeout(async () => {
-            clearInterval(countdownInterval)
             const currentGame = this.games.get(channelId)
             if (currentGame?.state === 'active' && currentGame.alivePlayers[currentGame.currentTurnIndex]?.userId === currentPlayer.userId) {
                 // Auto-shoot
@@ -415,13 +397,10 @@ export class GameManager {
 
         if (game.state === 'active') {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
-            const timeLeft = game.turnStartTime
-                ? Math.max(0, this.config.turnTimerSeconds - Math.floor((Date.now() - game.turnStartTime.getTime()) / 1000))
-                : this.config.turnTimerSeconds
 
             const turnInfo = game.forcedShoot
-                ? `⚠️ <@${currentPlayer?.userId}> must /shoot! (${timeLeft}s)`
-                : `<@${currentPlayer?.userId}> (${timeLeft}s) - /shoot or /pass`
+                ? `⚠️ <@${currentPlayer?.userId}> must /shoot!`
+                : `<@${currentPlayer?.userId}> - /shoot or /pass`
 
             const remainingChambers = game.chambers - game.gunChamber
             const deathProbability = remainingChambers > 0 ? (1 / remainingChambers * 100).toFixed(1) : '100'
