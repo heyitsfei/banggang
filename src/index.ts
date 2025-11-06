@@ -34,14 +34,33 @@ function cacheUsernamesFromMentions(mentions?: Array<{ userId: string; displayNa
     }
 }
 
-// Helper to send game messages
+// Helper to send game messages with automatic username mentions
 async function sendGameMessage(channelId: string, message: string): Promise<void> {
-    await bot.sendMessage(channelId, message)
+    // Extract user IDs from mentions in message text (<@0x...>)
+    // Towns Protocol user IDs are hex addresses with 0x prefix
+    const mentionRegex = /<@(0x[a-fA-F0-9]{40})>/g
+    const mentions: Array<{ userId: string; displayName: string; mentionBehavior: { case: undefined } }> = []
+    let match
+    
+    while ((match = mentionRegex.exec(message)) !== null) {
+        const userId = match[1]
+        const username = getUserUsername(userId)
+        // Only add if we have a username cached (avoid duplicates)
+        if (!mentions.some(m => m.userId.toLowerCase() === userId.toLowerCase())) {
+            mentions.push({
+                userId: userId,
+                displayName: username,
+                mentionBehavior: { case: undefined },
+            })
+        }
+    }
+    
+    await bot.sendMessage(channelId, message, mentions.length > 0 ? { mentions } : undefined)
 }
 
 // Handle tips as entry fees
 bot.onTip(async (handler, event) => {
-    const { channelId, messageId, senderAddress, receiverAddress, amount, spaceId, currency } = event
+    const { channelId, messageId, senderAddress, receiverAddress, amount, spaceId, currency, userId } = event
 
     // Log tip event for debugging
     console.log('Tip received:', {
@@ -72,13 +91,13 @@ bot.onTip(async (handler, event) => {
         if (!game) {
             gameManager.createGame(channelId, spaceId)
             // Now add the player
-            const username = getUserUsername(senderAddress)
-            const result = gameManager.addPlayer(channelId, senderAddress, username, amount)
+            const username = getUserUsername(userId)
+            const result = gameManager.addPlayer(channelId, userId, username, amount)
             if (result.success && result.game) {
                 const game = result.game
                 await handler.sendMessage(
                     channelId,
-                    `💀 **Game created!** <@${senderAddress}> joined with ${formatAmount(amount)} ETH tip!\n` +
+                    `💀 **Game created!** <@${userId}> joined with ${formatAmount(amount)} ETH tip!\n` +
                         `💰 Pool A: ${formatAmount(game.poolA)} ETH | House rake: ${formatAmount(game.houseRake)} ETH\n` +
                         `Tip ETH to join! (min ${gameManager.config.minPlayers} players, max ${gameManager.config.maxPlayers})\n` +
                         (game.players.length >= gameManager.config.minPlayers
@@ -86,7 +105,7 @@ bot.onTip(async (handler, event) => {
                             : `Need ${gameManager.config.minPlayers - game.players.length} more player(s) to start.`),
                     {
                         mentions: [{
-                            userId: senderAddress,
+                            userId: userId,
                             displayName: username,
                             mentionBehavior: { case: undefined },
                         }],
@@ -103,21 +122,21 @@ bot.onTip(async (handler, event) => {
     }
 
     // Add player to game
-    const username = getUserUsername(senderAddress)
-    const result = gameManager.addPlayer(channelId, senderAddress, username, amount)
+    const username = getUserUsername(userId)
+    const result = gameManager.addPlayer(channelId, userId, username, amount)
 
     if (result.success && result.game) {
         const game = result.game
         await handler.sendMessage(
             channelId,
-            `💀 <@${senderAddress}> joined! (${game.players.length}/${gameManager.config.maxPlayers})\n` +
+            `💀 <@${userId}> joined! (${game.players.length}/${gameManager.config.maxPlayers})\n` +
                 `💰 Pool A: ${formatAmount(game.poolA)} ETH | House rake: ${formatAmount(game.houseRake)} ETH\n` +
                 (game.players.length >= gameManager.config.minPlayers
                     ? `Ready to start! Use /start when all players have joined.`
                     : `Need ${gameManager.config.minPlayers - game.players.length} more player(s) to start.`),
             {
                 mentions: [{
-                    userId: senderAddress,
+                    userId: userId,
                     displayName: username,
                     mentionBehavior: { case: undefined },
                 }],
