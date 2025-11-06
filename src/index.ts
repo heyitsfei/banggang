@@ -12,20 +12,23 @@ const bot = await makeTownsBot(process.env.APP_PRIVATE_DATA!, process.env.JWT_SE
 // Initialize game manager
 const gameManager = new GameManager()
 
-// Cache user display names (userId -> displayName)
-const userDisplayNames = new Map<string, string>()
+// Cache user usernames (userId -> username)
+// In Towns Protocol, displayName from mentions is the username
+const userUsernames = new Map<string, string>()
 
-// Helper to get user display name (with fallback)
-function getUserDisplayName(userId: string): string {
-    return userDisplayNames.get(userId) || userId.slice(0, 10) + '...'
+// Helper to get user username (with fallback)
+function getUserUsername(userId: string): string {
+    return userUsernames.get(userId) || userId.slice(0, 10) + '...'
 }
 
-// Helper to cache display names from mentions
-function cacheDisplayNamesFromMentions(mentions?: Array<{ userId: string; displayName: string }>): void {
+// Helper to cache usernames from mentions
+// displayName in mentions is the username used in Towns
+function cacheUsernamesFromMentions(mentions?: Array<{ userId: string; displayName: string }>): void {
     if (mentions && mentions.length > 0) {
         for (const mention of mentions) {
             if (mention.displayName) {
-                userDisplayNames.set(mention.userId, mention.displayName)
+                // displayName from mentions is the username
+                userUsernames.set(mention.userId, mention.displayName)
             }
         }
     }
@@ -69,8 +72,8 @@ bot.onTip(async (handler, event) => {
         if (!game) {
             gameManager.createGame(channelId, spaceId)
             // Now add the player
-            const displayName = getUserDisplayName(senderAddress)
-            const result = gameManager.addPlayer(channelId, senderAddress, displayName, amount)
+            const username = getUserUsername(senderAddress)
+            const result = gameManager.addPlayer(channelId, senderAddress, username, amount)
             if (result.success && result.game) {
                 const game = result.game
                 await handler.sendMessage(
@@ -84,7 +87,7 @@ bot.onTip(async (handler, event) => {
                     {
                         mentions: [{
                             userId: senderAddress,
-                            displayName: displayName,
+                            displayName: username,
                             mentionBehavior: { case: undefined },
                         }],
                     },
@@ -100,8 +103,8 @@ bot.onTip(async (handler, event) => {
     }
 
     // Add player to game
-    const displayName = getUserDisplayName(senderAddress)
-    const result = gameManager.addPlayer(channelId, senderAddress, displayName, amount)
+    const username = getUserUsername(senderAddress)
+    const result = gameManager.addPlayer(channelId, senderAddress, username, amount)
 
     if (result.success && result.game) {
         const game = result.game
@@ -115,7 +118,7 @@ bot.onTip(async (handler, event) => {
             {
                 mentions: [{
                     userId: senderAddress,
-                    displayName: displayName,
+                    displayName: username,
                     mentionBehavior: { case: undefined },
                 }],
             },
@@ -127,7 +130,7 @@ bot.onTip(async (handler, event) => {
 
 // Start game command
 bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentions }) => {
-    cacheDisplayNamesFromMentions(mentions)
+    cacheUsernamesFromMentions(mentions)
     try {
         // Create game if it doesn't exist
         let game = gameManager.getGame(channelId)
@@ -273,8 +276,12 @@ bot.onSlashCommand('time', async (handler, { channelId }) => {
 })
 
 bot.onMessage(async (handler, { message, channelId, eventId, createdAt, userId, mentions }) => {
-    // Cache display names from mentions in messages
-    cacheDisplayNamesFromMentions(mentions)
+    // Cache usernames from mentions in messages
+    // displayName in mentions is the username
+    cacheUsernamesFromMentions(mentions)
+    
+    // Note: We can't get the sender's username directly from onMessage events
+    // We rely on mentions to learn usernames, or they'll be learned when they're mentioned
 
     if (message.includes('hello')) {
         await handler.sendMessage(channelId, 'Hello there! 👋')
