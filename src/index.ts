@@ -19,16 +19,59 @@ async function sendGameMessage(channelId: string, message: string): Promise<void
 
 // Handle tips as entry fees
 bot.onTip(async (handler, event) => {
-    const { channelId, messageId, senderAddress, receiverAddress, amount, spaceId } = event
+    const { channelId, messageId, senderAddress, receiverAddress, amount, spaceId, currency } = event
 
-    // Check if bot received the tip
-    if (receiverAddress !== bot.botId) {
+    // Log tip event for debugging
+    console.log('Tip received:', {
+        receiverAddress,
+        botAppAddress: bot.appAddress,
+        botBotId: bot.botId,
+        amount: formatAmount(amount),
+        currency,
+        senderAddress,
+        channelId,
+    })
+
+    // Check if bot's app contract received the tip
+    // Tips go to the app contract address, not bot.botId
+    const expectedAddress = bot.appAddress.toLowerCase()
+    const receivedAddress = receiverAddress.toLowerCase()
+    
+    if (receivedAddress !== expectedAddress) {
+        console.log(`Tip not for bot: received ${receivedAddress}, expected ${expectedAddress}`)
         return
     }
 
     // Check if there's a waiting game in this channel
     const game = gameManager.getGame(channelId)
     if (!game || game.state !== 'waiting') {
+        console.log('No waiting game found, creating one or informing user')
+        // If no game exists, create one automatically
+        if (!game) {
+            gameManager.createGame(channelId, spaceId)
+            // Now add the player
+            const result = gameManager.addPlayer(channelId, senderAddress, senderAddress.slice(0, 10), amount)
+            if (result.success && result.game) {
+                const game = result.game
+                await handler.sendMessage(
+                    channelId,
+                    `💀 **Game created!** <@${senderAddress}> joined with ${formatAmount(amount)} ETH tip!\n` +
+                        `💰 Pool A: ${formatAmount(game.poolA)} ETH | House rake: ${formatAmount(game.houseRake)} ETH\n` +
+                        `Tip ETH to join! (min ${gameManager.config.minPlayers} players, max ${gameManager.config.maxPlayers})\n` +
+                        (game.players.length >= gameManager.config.minPlayers
+                            ? `Ready to start! Use /start when all players have joined.`
+                            : `Need ${gameManager.config.minPlayers - game.players.length} more player(s) to start.`),
+                    {
+                        mentions: [{
+                            userId: senderAddress,
+                            displayName: senderAddress.slice(0, 10),
+                            mentionBehavior: { case: undefined },
+                        }],
+                    },
+                )
+            }
+            return
+        }
         await handler.sendMessage(
             channelId,
             `💸 Thanks for the tip of ${formatAmount(amount)} ETH! Start a game with /start to use tips as entry fees.`,
@@ -41,14 +84,21 @@ bot.onTip(async (handler, event) => {
 
     if (result.success && result.game) {
         const game = result.game
-            await handler.sendMessage(
-                channelId,
-                `💀 <@${senderAddress}> joined! (${game.players.length}/${gameManager.config.maxPlayers})\n` +
-                    `💰 Pool A: ${formatAmount(game.poolA)} ETH | House rake: ${formatAmount(game.houseRake)} ETH\n` +
-                    (game.players.length >= gameManager.config.minPlayers
-                        ? `Ready to start! Use /start when all players have joined.`
-                        : `Need ${gameManager.config.minPlayers - game.players.length} more player(s) to start.`),
-            )
+        await handler.sendMessage(
+            channelId,
+            `💀 <@${senderAddress}> joined! (${game.players.length}/${gameManager.config.maxPlayers})\n` +
+                `💰 Pool A: ${formatAmount(game.poolA)} ETH | House rake: ${formatAmount(game.houseRake)} ETH\n` +
+                (game.players.length >= gameManager.config.minPlayers
+                    ? `Ready to start! Use /start when all players have joined.`
+                    : `Need ${gameManager.config.minPlayers - game.players.length} more player(s) to start.`),
+            {
+                mentions: [{
+                    userId: senderAddress,
+                    displayName: senderAddress.slice(0, 10),
+                    mentionBehavior: { case: undefined },
+                }],
+            },
+        )
     } else {
         await handler.sendMessage(channelId, `❌ ${result.message}`)
     }
