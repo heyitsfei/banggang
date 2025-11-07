@@ -1021,37 +1021,39 @@
         
         .blood-drop {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            background: radial-gradient(circle, #8b0000 0%, #5a0000 50%, transparent 100%);
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
+            width: 26px;
+            height: 26px;
+            background: radial-gradient(circle, rgba(124, 0, 0, 0.95) 0%, rgba(65, 0, 0, 0.85) 55%, transparent 100%);
+            border-radius: 48% 52% 38% 62%;
+            transform: rotate(-20deg);
             opacity: 0;
-            animation: splatter 1s ease-out forwards;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+            animation: splatter 1.2s ease-out forwards;
         }
         
         @keyframes splatter {
             0% {
                 opacity: 0;
-                transform: rotate(-45deg) scale(0) translate(0, 0);
+                transform: rotate(-20deg) scale(0) translate(0, 0);
             }
             10% {
                 opacity: 1;
             }
             100% {
                 opacity: 0.8;
-                transform: rotate(-45deg) scale(1) translate(var(--tx), var(--ty));
+                transform: rotate(-20deg) scale(1) translate(var(--tx), var(--ty));
             }
         }
         
         .blood-splatter-large {
             position: absolute;
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, rgba(139, 0, 0, 0.8) 0%, rgba(90, 0, 0, 0.4) 50%, transparent 100%);
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(130, 0, 0, 0.92) 0%, rgba(79, 0, 0, 0.6) 55%, transparent 100%);
             border-radius: 50%;
             opacity: 0;
-            animation: largeSplatter 0.8s ease-out forwards;
+            filter: blur(0.5px) drop-shadow(0 0 18px rgba(60, 0, 0, 0.45));
+            animation: largeSplatter 0.9s ease-out forwards;
         }
         
         @keyframes largeSplatter {
@@ -1067,6 +1069,61 @@
                 opacity: 0.6;
                 transform: scale(1);
             }
+        }
+
+        .blood-drip {
+            position: absolute;
+            width: 10px;
+            height: 0;
+            background: linear-gradient(180deg, rgba(145, 0, 0, 0.95), rgba(70, 0, 0, 0.85));
+            border-radius: 20px;
+            opacity: 0;
+            filter: blur(0.5px);
+            animation: bloodDrip 2.8s cubic-bezier(0.31, 0.15, 0.18, 0.92) forwards;
+        }
+
+        @keyframes bloodDrip {
+            0% {
+                height: 0;
+                opacity: 0;
+                transform: translateY(-20px) scaleX(0.6);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(-5px) scaleX(1);
+            }
+            70% {
+                height: var(--drip-length);
+                opacity: 1;
+            }
+            85% {
+                height: calc(var(--drip-length) + 10px);
+                opacity: 0.85;
+            }
+            100% {
+                height: calc(var(--drip-length) + 18px);
+                opacity: 0;
+                transform: translateY(6px) scaleX(0.7);
+            }
+        }
+
+        .debug-overlay {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            max-width: 320px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 193, 94, 0.45);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 12px;
+            line-height: 1.4;
+            color: rgba(255, 234, 200, 0.9);
+            font-family: 'Roboto Mono', monospace;
+            z-index: 4000;
+            overflow-y: auto;
+            max-height: 50vh;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
         }
     </style>
 </head>
@@ -1172,6 +1229,7 @@
     
     <!-- Blood Splatter Container -->
     <div class="blood-splatter" id="bloodSplatter"></div>
+    <div class="debug-overlay" id="debugOverlay" style="display: none;"></div>
     
     <script>
         // Audio context for sound effects
@@ -1254,15 +1312,13 @@
             largeSplatter.style.transform = 'translate(-50%, -50%)';
             splatter.appendChild(largeSplatter);
             
-            // Create multiple blood drops
-            const numDrops = 30;
+            const numDrops = 60;
             for (let i = 0; i < numDrops; i++) {
                 const drop = document.createElement('div');
                 drop.className = 'blood-drop';
                 
-                // Random position around center
-                const angle = (Math.PI * 2 * i) / numDrops + Math.random() * 0.5;
-                const distance = 100 + Math.random() * 200;
+                const angle = (Math.PI * 2 * i) / numDrops + Math.random() * 0.65;
+                const distance = 120 + Math.random() * 260;
                 const tx = Math.cos(angle) * distance;
                 const ty = Math.sin(angle) * distance;
                 
@@ -1271,26 +1327,39 @@
                 drop.style.setProperty('--tx', `${tx}px`);
                 drop.style.setProperty('--ty', `${ty}px`);
                 
-                // Random size
-                const size = 15 + Math.random() * 25;
+                const size = 18 + Math.random() * 35;
                 drop.style.width = `${size}px`;
                 drop.style.height = `${size}px`;
-                
-                // Random delay for staggered effect
-                drop.style.animationDelay = `${Math.random() * 0.2}s`;
+                drop.style.animationDelay = `${Math.random() * 0.35}s`;
+                drop.style.animationDuration = `${1 + Math.random() * 0.6}s`;
                 
                 splatter.appendChild(drop);
+            }
+            
+            const dripCount = 18;
+            for (let i = 0; i < dripCount; i++) {
+                const drip = document.createElement('div');
+                drip.className = 'blood-drip';
+                const offsetX = -120 + Math.random() * 240;
+                const startY = -60 + Math.random() * 40;
+                const length = 60 + Math.random() * 140;
+                drip.style.left = `calc(50% + ${offsetX}px)`;
+                drip.style.top = `calc(50% + ${startY}px)`;
+                drip.style.setProperty('--drip-length', `${length}px`);
+                drip.style.animationDelay = `${0.3 + Math.random() * 0.6}s`;
+                splatter.appendChild(drip);
             }
             
             // Remove splatter after animation
             setTimeout(() => {
                 splatter.innerHTML = '';
-            }, 2000);
+            }, 3200);
         }
         
         const urlParams = new URLSearchParams(window.location.search);
         let channelId = urlParams.get('channelId') || '';
         let username = (urlParams.get('username') || '').trim();
+        const debugMode = urlParams.get('debug') === '1';
 
         const deploymentBaseUrl = 'https://banggang.onrender.com';
         const origin = window.location.origin;
@@ -1303,6 +1372,21 @@
         let contextReady = false;
         let ensureContextPromise = null;
         let promptedForUsername = false;
+        const debugOverlay = document.getElementById('debugOverlay');
+
+        function logDebug(message, data = {}) {
+            const payload = { message, ...data };
+            console.log('[BangGang]', payload);
+            if (debugMode && debugOverlay) {
+                debugOverlay.style.display = 'block';
+                const entry = document.createElement('div');
+                entry.textContent = `${new Date().toISOString().split('T')[1].replace('Z', '')}  ${message} ${JSON.stringify(data)}`;
+                debugOverlay.appendChild(entry);
+                debugOverlay.scrollTop = debugOverlay.scrollHeight;
+            }
+        }
+
+        logDebug('miniapp script loaded', { origin, channelId, username, baseUrl, debugMode });
         
         function loadStoredContext(preferredUsername = '') {
             try {
@@ -1313,11 +1397,11 @@
                 if (preferredUsername) {
                     const key = preferredUsername.toLowerCase();
                     if (data[key]) {
-                        console.log('[BangGang] Loaded stored context by preferred username', { preferredUsername, context: data[key] });
+                logDebug('loaded stored context for username', { preferredUsername, context: data[key] });
                         return data[key];
                     }
                 }
-                console.log('[BangGang] Loaded stored context fallback', { context: data.__last });
+                logDebug('loaded stored context fallback', { context: data.__last });
                 return data.__last || null;
             } catch (error) {
                 console.warn('Failed to load stored context', error);
@@ -1334,7 +1418,7 @@
                 data[key] = { channelId, username };
                 data.__last = { channelId, username };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                console.log('[BangGang] Saved context to storage', { key, channelId, username });
+                logDebug('saved context to storage', { key, channelId, username });
             } catch (error) {
                 console.warn('Failed to save context', error);
             }
@@ -1359,35 +1443,35 @@
         
         async function findChannelForUsername(name) {
             if (!name) return null;
-            console.log('[BangGang] findChannelForUsername start', { name });
+        logDebug('findChannelForUsername start', { name });
             try {
                 const response = await fetch(`${baseUrl}/api/find-game?username=${encodeURIComponent(name)}`);
                 if (!response.ok) {
-                    console.warn('[BangGang] findChannelForUsername non-200', { status: response.status });
+                logDebug('findChannelForUsername non-200', { status: response.status });
                     return null;
                 }
                 const data = await response.json().catch(() => null);
                 if (!data || !data.found || !Array.isArray(data.games) || data.games.length === 0) {
-                    console.warn('[BangGang] findChannelForUsername no matches', { name, data });
+                logDebug('findChannelForUsername no matches', { name, data });
                     return null;
                 }
                 const active = data.games.find(game => game.state === 'active');
-                console.log('[BangGang] findChannelForUsername success', { name, channelId: (active || data.games[0]).channelId });
+            logDebug('findChannelForUsername success', { name, channelId: (active || data.games[0]).channelId });
                 return active || data.games[0];
             } catch (error) {
-                console.warn('Failed to resolve channel for username', error);
+            logDebug('findChannelForUsername error', { error: error instanceof Error ? error.message : String(error) });
                 return null;
             }
         }
         
         async function ensureContext() {
-            console.log('[BangGang] ensureContext invoked', { channelId, username, contextReady, promptedForUsername });
+            logDebug('ensureContext invoked', { channelId, username, contextReady, promptedForUsername });
             if (contextReady && channelId) {
-                console.log('[BangGang] Context already ready, skipping resolution');
+                logDebug('context already ready, skipping resolution');
                 return true;
             }
             if (ensureContextPromise) {
-                console.log('[BangGang] Awaiting in-flight context resolution');
+                logDebug('awaiting existing context resolution');
                 return ensureContextPromise;
             }
             
@@ -1398,7 +1482,7 @@
                     const stored = loadStoredContext();
                     if (stored && stored.username) {
                         username = stored.username;
-                        console.log('[BangGang] Loaded username from storage', { username });
+                        logDebug('loaded username from storage', { username });
                         updated = true;
                     }
                 }
@@ -1407,7 +1491,7 @@
                     const stored = loadStoredContext(username);
                     if (stored && stored.channelId) {
                         channelId = stored.channelId;
-                        console.log('[BangGang] Loaded channelId from storage', { channelId, username });
+                        logDebug('loaded channelId from storage', { channelId, username });
                         if (!username && stored.username) {
                             username = stored.username;
                         }
@@ -1419,18 +1503,18 @@
                     const refChannel = extractChannelIdFromReferrer();
                     if (refChannel) {
                         channelId = refChannel;
-                        console.log('[BangGang] Extracted channelId from referrer', { channelId, referrer: document.referrer });
+                        logDebug('extracted channelId from referrer', { channelId, referrer: document.referrer });
                         updated = true;
                     }
                 }
                 
                 if (!username && !promptedForUsername) {
-                    console.log('[BangGang] Prompting for username');
+                    logDebug('prompting user for username');
                     promptedForUsername = true;
                     const input = window.prompt('Enter your Towns username to load Bang Gang:', '');
                     if (input) {
                         username = input.trim();
-                        console.log('[BangGang] User provided username', { username });
+                        logDebug('user entered username', { username });
                         if (username) {
                             updated = true;
                         }
@@ -1438,36 +1522,36 @@
                 }
                 
                 if (!channelId && username) {
-                    console.log('[BangGang] Resolving channel via backend', { username });
+                    logDebug('resolving channel via backend', { username });
                     const resolved = await findChannelForUsername(username);
                     if (resolved && resolved.channelId) {
                         channelId = resolved.channelId;
-                        console.log('[BangGang] Backend resolved channel', { channelId, resolved });
+                        logDebug('backend resolved channel', { channelId, resolved });
                         updated = true;
                     } else {
-                        console.warn('[BangGang] Backend failed to resolve channel', { username, resolved });
+                        logDebug('backend failed to resolve channel', { username, resolved });
                     }
                 }
                 
                 if (!channelId && !username) {
-                    console.warn('[BangGang] Missing both channelId and username after resolution attempts');
+                    logDebug('missing both channelId and username after resolution attempts');
                 } else if (!channelId) {
-                    console.warn('[BangGang] Still missing channelId after resolution attempts', { username });
+                    logDebug('still missing channelId after resolution attempts', { username });
                 } else if (!username) {
-                    console.warn('[BangGang] Still missing username after resolution attempts', { channelId });
+                    logDebug('still missing username after resolution attempts', { channelId });
                 }
 
                 if (channelId && username) {
                     contextReady = true;
                     saveContext();
                     hideError();
-                    console.log('[BangGang] Context successfully established', { channelId, username, updated });
+                    logDebug('context successfully established', { channelId, username, updated });
                     return true;
                 }
                 
                 if (!channelId) {
                     showError('No channel context detected. Open Bang Gang from the channel message or enter your username when prompted.');
-                    console.error('[BangGang] Unable to determine channel context', { username, referrer: document.referrer });
+                    logDebug('unable to determine channel context', { username, referrer: document.referrer });
                 }
                 
                 return false;
@@ -1513,16 +1597,16 @@
         }
         
         async function sendCommand(command) {
-            console.log('[BangGang] sendCommand called', { command, channelId, username, contextReady });
+            logDebug('sendCommand called', { command, channelId, username, contextReady });
             const ready = await ensureContext();
             if (!ready) {
-                console.warn('[BangGang] sendCommand aborted - context not ready');
+                logDebug('sendCommand aborted - context not ready');
                 document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 return;
             }
 
             try {
-                console.log('[BangGang] Sending command request', { command, channelId, username });
+                logDebug('sending command request', { command, channelId, username, baseUrl });
                 const response = await fetch(`${baseUrl}/api/command`, {
                     method: 'POST',
                     headers: {
@@ -1536,7 +1620,7 @@
                 });
                 
                 const result = await response.json();
-                console.log('[BangGang] Command response received', result);
+                logDebug('command response received', result);
                 
                 if (result.success) {
                     if (command === 'shoot') {
@@ -1548,12 +1632,12 @@
                         fetchGameData();
                     }, 2000);
                 } else {
-                    console.warn('[BangGang] Command failed', result);
+                    logDebug('command failed', result);
                     alert(result.error || result.message || 'Error occurred');
                     document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 }
             } catch (error) {
-                console.error('[BangGang] Error sending command', error);
+                logDebug('error sending command', { error: error instanceof Error ? error.message : String(error) });
                 alert('Failed to send command. Please try again.');
                 document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
             }
@@ -1608,33 +1692,33 @@
         }
         
         async function fetchGameData() {
-            console.log('[BangGang] fetchGameData called', { channelId, username, contextReady });
+            logDebug('fetchGameData called', { channelId, username, contextReady });
             const ready = await ensureContext();
             if (!ready) {
-                console.warn('[BangGang] fetchGameData aborted - context not ready');
+                logDebug('fetchGameData aborted - context not ready');
                 return;
             }
 
             if (!username) {
                 showError('Unable to determine your username. Please reopen Bang Gang from the channel.');
-                console.error('[BangGang] Username missing after context resolution');
+                logDebug('username missing after context resolution');
                 return;
             }
 
             try {
                 const encodedUsername = encodeURIComponent(username);
-                console.log('[BangGang] Fetching game data from API', { channelId, username });
+                logDebug('fetching game data from API', { channelId, username, url: `${baseUrl}/api/game` });
                 const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&username=${encodedUsername}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    console.error('[BangGang] Game data request failed', { status: response.status, errorData });
+                    logDebug('game data request failed', { status: response.status, errorData });
                     throw new Error(errorData.error || `Failed to fetch game data (${response.status})`);
                 }
                 const data = await response.json();
-                console.log('[BangGang] Game data response', data);
+                logDebug('game data response', data);
                 
                 if (data.error) {
-                    console.warn('[BangGang] Game data returned error field', data);
+                    logDebug('game data returned error field', data);
                     showError(data.error);
                     return;
                 }
@@ -1643,7 +1727,7 @@
                 hideError();
                 updateGameDisplay(data);
             } catch (error) {
-                console.error('[BangGang] Error fetching game data', error);
+                logDebug('error fetching game data', { error: error instanceof Error ? error.message : String(error) });
                 showError(error.message || 'Failed to load game. Please try refreshing.');
             }
         }
