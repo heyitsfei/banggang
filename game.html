@@ -356,15 +356,16 @@
         
         .gun {
             position: relative;
-            width: 220px;
-            height: 180px;
+            width: 260px;
+            height: 200px;
             transform-style: preserve-3d;
-            transform: rotateY(-15deg) rotateX(5deg);
-            transition: transform 0.3s ease;
+            transform: rotateZ(-90deg) rotateY(-12deg) rotateX(6deg) scale(1.45);
+            transform-origin: center center;
+            transition: transform 0.35s ease;
         }
         
         .gun:hover {
-            transform: rotateY(-10deg) rotateX(3deg) scale(1.05);
+            transform: rotateZ(-90deg) rotateY(-8deg) rotateX(4deg) scale(1.52);
         }
         
         .gun-body {
@@ -1290,7 +1291,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         let channelId = urlParams.get('channelId') || '';
         let username = (urlParams.get('username') || '').trim();
-        const baseUrl = window.location.origin;
+
+        const deploymentBaseUrl = 'https://banggang.onrender.com';
+        const origin = window.location.origin;
+        const isLocalOrigin = origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
+        const baseUrl = origin.includes('banggang.onrender.com') || isLocalOrigin ? origin : deploymentBaseUrl;
         const STORAGE_KEY = 'banggang:lastContext';
         
         let currentGameData = null;
