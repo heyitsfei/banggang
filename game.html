@@ -837,12 +837,163 @@
         }
         
         const urlParams = new URLSearchParams(window.location.search);
-        const channelId = urlParams.get('channelId') || '';
-        const username = urlParams.get('username') || '';
+        let channelId = urlParams.get('channelId') || '';
+        let username = (urlParams.get('username') || '').trim();
         const baseUrl = window.location.origin;
+        const STORAGE_KEY = 'banggang:lastContext';
         
         let currentGameData = null;
         let isShooting = false;
+        let contextReady = false;
+        let ensureContextPromise = null;
+        let promptedForUsername = false;
+        
+        function loadStoredContext(preferredUsername = '') {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (!data || typeof data !== 'object') return null;
+                if (preferredUsername) {
+                    const key = preferredUsername.toLowerCase();
+                    if (data[key]) {
+                        return data[key];
+                    }
+                }
+                return data.__last || null;
+            } catch (error) {
+                console.warn('Failed to load stored context', error);
+                return null;
+            }
+        }
+        
+        function saveContext() {
+            if (!channelId) return;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                const data = raw ? JSON.parse(raw) : {};
+                const key = (username || '').toLowerCase() || '__last';
+                data[key] = { channelId, username };
+                data.__last = { channelId, username };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (error) {
+                console.warn('Failed to save context', error);
+            }
+        }
+        
+        function extractChannelIdFromReferrer() {
+            try {
+                if (!document.referrer) return '';
+                const refUrl = new URL(document.referrer);
+                const segments = refUrl.pathname.split('/').filter(Boolean);
+                for (let i = segments.length - 1; i >= 0; i--) {
+                    const segment = segments[i];
+                    if (/^0x[a-fA-F0-9]{40,66}$/.test(segment)) {
+                        return segment;
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to parse channel from referrer', error);
+            }
+            return '';
+        }
+        
+        async function findChannelForUsername(name) {
+            if (!name) return null;
+            try {
+                const response = await fetch(`${baseUrl}/api/find-game?username=${encodeURIComponent(name)}`);
+                if (!response.ok) {
+                    return null;
+                }
+                const data = await response.json().catch(() => null);
+                if (!data || !data.found || !Array.isArray(data.games) || data.games.length === 0) {
+                    return null;
+                }
+                const active = data.games.find(game => game.state === 'active');
+                return active || data.games[0];
+            } catch (error) {
+                console.warn('Failed to resolve channel for username', error);
+                return null;
+            }
+        }
+        
+        async function ensureContext() {
+            if (contextReady && channelId) {
+                return true;
+            }
+            if (ensureContextPromise) {
+                return ensureContextPromise;
+            }
+            
+            ensureContextPromise = (async () => {
+                let updated = false;
+                
+                if (!username) {
+                    const stored = loadStoredContext();
+                    if (stored && stored.username) {
+                        username = stored.username;
+                        updated = true;
+                    }
+                }
+                
+                if (!channelId) {
+                    const stored = loadStoredContext(username);
+                    if (stored && stored.channelId) {
+                        channelId = stored.channelId;
+                        if (!username && stored.username) {
+                            username = stored.username;
+                        }
+                        updated = true;
+                    }
+                }
+                
+                if (!channelId) {
+                    const refChannel = extractChannelIdFromReferrer();
+                    if (refChannel) {
+                        channelId = refChannel;
+                        updated = true;
+                    }
+                }
+                
+                if (!username && !promptedForUsername) {
+                    promptedForUsername = true;
+                    const input = window.prompt('Enter your Towns username to load Bang Gang:', '');
+                    if (input) {
+                        username = input.trim();
+                        if (username) {
+                            updated = true;
+                        }
+                    }
+                }
+                
+                if (!channelId && username) {
+                    const resolved = await findChannelForUsername(username);
+                    if (resolved && resolved.channelId) {
+                        channelId = resolved.channelId;
+                        updated = true;
+                    }
+                }
+                
+                if (channelId && username) {
+                    contextReady = true;
+                    saveContext();
+                    hideError();
+                    return true;
+                }
+                
+                if (!channelId) {
+                    showError('No channel context detected. Open Bang Gang from the channel message or enter your username when prompted.');
+                }
+                
+                return false;
+            })();
+            
+            try {
+                return await ensureContextPromise;
+            } finally {
+                ensureContextPromise = null;
+            }
+        }
         
         // Button handlers
         document.getElementById('shootButton').addEventListener('click', async () => {
@@ -877,6 +1028,12 @@
         }
         
         async function sendCommand(command) {
+            const ready = await ensureContext();
+            if (!ready) {
+                document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
+                return;
+            }
+
             try {
                 const response = await fetch(`${baseUrl}/api/command`, {
                     method: 'POST',
@@ -961,11 +1118,16 @@
         }
         
         async function fetchGameData() {
-            if (!channelId) {
-                showError('No channel ID provided. Please open the game from the Towns channel.');
+            const ready = await ensureContext();
+            if (!ready) {
                 return;
             }
-            
+
+            if (!username) {
+                showError('Unable to determine your username. Please reopen Bang Gang from the channel.');
+                return;
+            }
+
             try {
                 const encodedUsername = encodeURIComponent(username);
                 const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&username=${encodedUsername}`);

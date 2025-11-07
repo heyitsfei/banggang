@@ -460,6 +460,36 @@ app.get('/api/game', (c) => {
     }
 })
 
+app.get('/api/find-game', (c) => {
+    try {
+        const username = c.req.query('username')
+        if (!username) {
+            return c.json({ error: 'username is required' }, 400)
+        }
+
+        const games = gameManager.findGamesByUsername(username)
+        if (games.length === 0) {
+            return c.json({ found: false })
+        }
+
+        const serialized = games.map((game) => ({
+            channelId: game.channelId,
+            state: game.state,
+            poolA: formatAmount(game.poolA),
+            players: game.players.map((player) => ({
+                userId: player.userId,
+                username: player.displayName,
+                isAlive: player.isAlive,
+            })),
+        }))
+
+        return c.json({ found: true, games: serialized })
+    } catch (error) {
+        console.error('Error in /api/find-game:', error)
+        return c.json({ error: 'Internal server error' }, 500)
+    }
+})
+
 // API endpoint to send commands
 app.post('/api/command', async (c) => {
     try {

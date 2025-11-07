@@ -68,3 +68,5 @@ Once you've added the images:
 - If you update images, you may need to wait for cache to clear or use a different filename
 - The images will be automatically served at the root URLs when placed in this directory
 
+
+

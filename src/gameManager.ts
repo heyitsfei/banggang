@@ -66,6 +66,39 @@ export class GameManager {
     }
 
     /**
+     * Find all games where the provided username/displayName is participating.
+     * Falls back to matching on userId if displayName is unavailable.
+     */
+    findGamesByUsername(username: string): Game[] {
+        if (!username) {
+            return []
+        }
+
+        const normalized = username.trim().toLowerCase()
+        if (!normalized) {
+            return []
+        }
+
+        const matches: Game[] = []
+        for (const game of this.games.values()) {
+            const hasPlayer = game.players.some((player) => {
+                const displayName = (player.displayName || '').trim().toLowerCase()
+                if (displayName && displayName === normalized) {
+                    return true
+                }
+
+                return player.userId.toLowerCase() === normalized
+            })
+
+            if (hasPlayer) {
+                matches.push(game)
+            }
+        }
+
+        return matches
+    }
+
+    /**
      * Add player to game with entry tip
      */
     addPlayer(
