@@ -17,6 +17,28 @@
     <!-- For backward compatibility -->
     <meta name="fc:frame" content='{"version":"1","imageUrl":"https://banggang.onrender.com/og-image.png","button":{"title":"🔫 Play Bang Gang","action":{"type":"launch_frame","name":"Bang Gang","url":"https://banggang.onrender.com/game","splashImageUrl":"https://banggang.onrender.com/splash.png","splashBackgroundColor":"#667eea"}}}' />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Roboto+Condensed:wght@400;500;700&display=swap');
+
+        :root {
+            --bg-dark: #0f0905;
+            --bg-deep: #120b07;
+            --brass: #c28b36;
+            --brass-deep: #8f5a18;
+            --bronze: #6b3f1e;
+            --copper: #a86d35;
+            --iron: #1f1c19;
+            --steel: #3b3a36;
+            --amber: #f5d48f;
+            --steam: rgba(255, 255, 255, 0.05);
+            --emerald: #36c1a1;
+            --danger: #ff6f4f;
+            --panel-highlight: rgba(255, 216, 145, 0.25);
+            --panel-shadow: rgba(0, 0, 0, 0.75);
+            --text-primary: #f6e7c3;
+            --text-muted: rgba(246, 231, 195, 0.65);
+            --glow-soft: rgba(245, 212, 143, 0.45);
+            --glow-emerald: rgba(54, 193, 161, 0.5);
+        }
         * {
             margin: 0;
             padding: 0;
@@ -24,35 +46,304 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Roboto Condensed', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background:
+                radial-gradient(circle at 20% 15%, rgba(242, 210, 149, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 80% 85%, rgba(178, 107, 38, 0.28) 0%, transparent 50%),
+                linear-gradient(140deg, rgba(8, 5, 3, 0.95) 0%, rgba(10, 7, 4, 0.9) 35%, rgba(26, 15, 9, 0.85) 100%),
+                linear-gradient(180deg, rgba(55, 35, 18, 0.35) 0%, rgba(9, 5, 2, 0.85) 40%, rgba(9, 5, 2, 0.95) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            color: white;
+            padding: 26px;
+            color: var(--text-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(250, 214, 152, 0.08), transparent 55%),
+                repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0, rgba(255, 255, 255, 0.04) 2px, transparent 2px, transparent 6px),
+                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 5px);
+            opacity: 0.5;
+            mix-blend-mode: screen;
         }
         
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            padding: 30px;
-            max-width: 500px;
+            position: relative;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(255, 205, 143, 0.08), transparent 65%),
+                radial-gradient(circle at 80% 18%, rgba(255, 184, 108, 0.08), transparent 60%),
+                linear-gradient(160deg, rgba(37, 25, 16, 0.95) 0%, rgba(14, 9, 6, 0.94) 55%, rgba(30, 18, 11, 0.92) 100%);
+            border-radius: 28px;
+            box-shadow:
+                0 35px 70px rgba(0, 0, 0, 0.75),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+                inset 0 0 45px rgba(0, 0, 0, 0.55);
+            padding: 40px 38px 44px;
+            max-width: 560px;
             width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(198, 138, 58, 0.4);
+            backdrop-filter: blur(10px) saturate(120%);
+            z-index: 3;
+        }
+
+        .container::before,
+        .container::after {
+            content: '';
+            position: absolute;
+            border-radius: 22px;
+            inset: -12px;
+            z-index: -1;
+            background: linear-gradient(135deg, rgba(91, 54, 23, 0.7) 0%, rgba(41, 26, 13, 0.8) 100%);
+            border: 1px solid rgba(234, 192, 118, 0.25);
+            filter: drop-shadow(0 15px 45px rgba(0, 0, 0, 0.6));
+        }
+
+        .container::after {
+            inset: -20px;
+            opacity: 0.35;
+            background: repeating-linear-gradient(135deg,
+                rgba(255, 209, 148, 0.05) 0px,
+                rgba(255, 209, 148, 0.05) 14px,
+                transparent 14px,
+                transparent 28px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            filter: blur(0.5px);
         }
         
-        h1 {
-            color: #fff;
-            margin-bottom: 20px;
+        .title-plate {
+            position: relative;
             text-align: center;
-            font-size: 2em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 22px 16px 26px;
+            margin-bottom: 26px;
+            background:
+                linear-gradient(135deg, rgba(46, 31, 18, 0.9) 0%, rgba(24, 18, 12, 0.92) 100%),
+                radial-gradient(circle at 50% 0%, rgba(255, 214, 153, 0.12), transparent 70%);
+            border-radius: 22px;
+            border: 1px solid rgba(215, 159, 82, 0.45);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 -30px 60px rgba(0, 0, 0, 0.35),
+                0 18px 40px rgba(0, 0, 0, 0.55);
         }
-        
+
+        .title-plate::before,
+        .title-plate::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 208, 146, 0.95), rgba(88, 53, 22, 0.95));
+            box-shadow: 0 0 10px rgba(255, 208, 146, 0.45);
+            top: 18px;
+        }
+
+        .title-plate::before {
+            left: 22px;
+        }
+
+        .title-plate::after {
+            right: 22px;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 2px;
+            color: var(--amber);
+            margin: 12px 0 6px;
+            font-size: 2.2em;
+            text-shadow:
+                0 0 12px rgba(245, 212, 143, 0.45),
+                0 14px 25px rgba(0, 0, 0, 0.65);
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -10px;
+            width: 110px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(245, 212, 143, 0.85), transparent);
+            box-shadow: 0 0 14px rgba(245, 212, 143, 0.5);
+        }
+
+        .title-sub {
+            font-size: 0.85em;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 18px;
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 6px 18px;
+            border-radius: 999px;
+            background: linear-gradient(120deg, rgba(198, 136, 62, 0.9), rgba(137, 84, 27, 0.95));
+            border: 1px solid rgba(255, 219, 167, 0.45);
+            color: #1a0f06;
+            box-shadow:
+                inset 0 0 8px rgba(255, 219, 167, 0.35),
+                0 0 18px rgba(198, 136, 62, 0.45);
+        }
+
+        .steam-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .steam-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.06), transparent 42%);
+            opacity: 0.4;
+        }
+
+        .gear {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 201, 134, 0.45), rgba(94, 57, 24, 0.95));
+            box-shadow:
+                inset 0 0 25px rgba(0, 0, 0, 0.6),
+                0 0 35px rgba(0, 0, 0, 0.5);
+            opacity: 0.45;
+            animation: slow-spin 60s linear infinite;
+            z-index: 0;
+        }
+
+        .gear::before,
+        .gear::after {
+            content: '';
+            position: absolute;
+            inset: 15%;
+            border-radius: 50%;
+            border: 6px solid rgba(20, 12, 8, 0.9);
+        }
+
+        .gear::after {
+            inset: 32%;
+            border-width: 4px;
+            border-color: rgba(242, 201, 139, 0.35);
+        }
+
+        .gear-lg {
+            width: 420px;
+            height: 420px;
+            top: -140px;
+            left: -120px;
+        }
+
+        .gear-md {
+            width: 260px;
+            height: 260px;
+            bottom: -80px;
+            right: -50px;
+            animation-duration: 45s;
+        }
+
+        .gear-sm {
+            width: 160px;
+            height: 160px;
+            top: 10%;
+            right: 15%;
+            animation-duration: 35s;
+        }
+
+        .steam-mist {
+            position: absolute;
+            width: 240px;
+            height: 420px;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.15), transparent 65%);
+            filter: blur(12px);
+            opacity: 0.6;
+            animation: steam-rise 18s ease-in-out infinite;
+        }
+
+        .steam-mist::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.12), transparent 60%);
+            animation: steam-shift 12s ease-in-out infinite;
+        }
+
+        .steam-mist-left {
+            left: 6%;
+            bottom: -10%;
+            animation-delay: -4s;
+        }
+
+        .steam-mist-right {
+            right: 5%;
+            top: 5%;
+            animation-delay: -9s;
+        }
+
+        .floating-light {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 225, 155, 0.45) 0%, rgba(255, 225, 155, 0.05) 65%, transparent 75%);
+            opacity: 0.35;
+            filter: blur(2px);
+            animation: light-pulse 12s ease-in-out infinite;
+        }
+
+        .light-left {
+            bottom: 14%;
+            left: 10%;
+        }
+
+        .light-right {
+            top: 10%;
+            right: 12%;
+            animation-delay: -6s;
+        }
+
+        @keyframes light-pulse {
+            0%, 100% { transform: scale(0.85); opacity: 0.25; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+
+        @keyframes slow-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes steam-rise {
+            0% { transform: translateY(40px) scale(0.95); opacity: 0.2; }
+            40% { opacity: 0.55; }
+            100% { transform: translateY(-160px) scale(1.05); opacity: 0; }
+        }
+
+        @keyframes steam-shift {
+            0% { transform: translate(0, 0); opacity: 0.35; }
+            50% { transform: translate(12px, -22px); opacity: 0.6; }
+            100% { transform: translate(-8px, -40px); opacity: 0; }
+        }
+
         .gun-container {
             display: flex;
             justify-content: center;
@@ -80,16 +371,16 @@
             position: absolute;
             width: 200px;
             height: 50px;
-            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
-            border-radius: 25px;
+            background: linear-gradient(135deg, #6f431c 0%, #3e220c 60%, #2b1707 100%);
+            border-radius: 26px;
             top: 65px;
             left: 10px;
             box-shadow: 
-                0 10px 30px rgba(0, 0, 0, 0.8),
-                inset 0 2px 5px rgba(255, 255, 255, 0.1),
-                inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+                0 16px 32px rgba(0, 0, 0, 0.75),
+                inset 0 2px 6px rgba(255, 234, 182, 0.2),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.55);
             transform: translateZ(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 220, 163, 0.2);
         }
         
         .gun-body::before {
@@ -100,9 +391,9 @@
             width: 180px;
             height: 40px;
             background: linear-gradient(90deg, 
-                rgba(255, 255, 255, 0.1) 0%,
-                rgba(255, 255, 255, 0.05) 50%,
-                rgba(0, 0, 0, 0.3) 100%);
+                rgba(255, 225, 170, 0.35) 0%,
+                rgba(135, 81, 27, 0.4) 55%,
+                rgba(41, 26, 13, 0.8) 100%);
             border-radius: 20px;
         }
         
@@ -110,16 +401,16 @@
             position: absolute;
             width: 140px;
             height: 35px;
-            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            background: linear-gradient(120deg, #99622f 0%, #5b3618 55%, #341a09 100%);
             border-radius: 18px;
             top: 67px;
             left: 80px;
             box-shadow: 
-                inset 0 3px 8px rgba(0, 0, 0, 0.7),
-                0 5px 15px rgba(0, 0, 0, 0.6),
-                inset 0 -2px 3px rgba(255, 255, 255, 0.05);
+                inset 0 2px 8px rgba(255, 218, 162, 0.15),
+                0 8px 18px rgba(0, 0, 0, 0.6),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.55);
             transform: translateZ(15px) rotateX(-2deg);
-            border: 1px solid rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 211, 153, 0.2);
         }
         
         .gun-barrel::before {
@@ -130,9 +421,9 @@
             width: 130px;
             height: 25px;
             background: radial-gradient(ellipse at center, 
-                rgba(0, 0, 0, 0.8) 0%,
-                rgba(0, 0, 0, 0.4) 50%,
-                transparent 100%);
+                rgba(255, 232, 184, 0.18) 0%,
+                rgba(141, 85, 36, 0.35) 48%,
+                rgba(0, 0, 0, 0.75) 100%);
             border-radius: 12px;
         }
         
@@ -154,15 +445,15 @@
             height: 90px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.2) 0%,
-                rgba(100, 100, 100, 0.3) 30%,
-                rgba(50, 50, 50, 0.8) 70%,
-                rgba(20, 20, 20, 1) 100%);
+                rgba(255, 227, 179, 0.65) 0%,
+                rgba(198, 133, 60, 0.75) 25%,
+                rgba(97, 52, 20, 0.95) 70%,
+                rgba(41, 22, 10, 1) 100%);
             box-shadow: 
-                0 8px 20px rgba(0, 0, 0, 0.8),
-                inset 0 2px 5px rgba(255, 255, 255, 0.1),
-                inset 0 -5px 10px rgba(0, 0, 0, 0.6);
-            border: 3px solid rgba(60, 60, 60, 0.8);
+                0 10px 26px rgba(0, 0, 0, 0.85),
+                inset 0 2px 5px rgba(255, 225, 180, 0.25),
+                inset 0 -5px 12px rgba(0, 0, 0, 0.7);
+            border: 3px solid rgba(255, 219, 157, 0.25);
             transform: translateZ(0);
         }
         
@@ -173,11 +464,12 @@
             height: 70px;
             border-radius: 50%;
             background: radial-gradient(circle at center, 
-                rgba(0, 0, 0, 0.9) 0%,
-                rgba(30, 30, 30, 0.8) 100%);
+                rgba(255, 231, 187, 0.35) 0%,
+                rgba(120, 70, 28, 0.85) 65%,
+                rgba(30, 17, 8, 0.95) 100%);
             top: 10px;
             left: 10px;
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 1);
+            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.85);
         }
         
         .cylinder.spinning {
@@ -193,13 +485,13 @@
             position: absolute;
             width: 14px;
             height: 14px;
-            background: radial-gradient(circle, #444 0%, #222 100%);
-            border: 2px solid #666;
+            background: radial-gradient(circle, #f1c97a 0%, #b67828 60%, #4b2a0f 100%);
+            border: 2px solid rgba(250, 217, 165, 0.8);
             border-radius: 50%;
             transform-origin: 45px 45px;
             box-shadow: 
-                0 2px 5px rgba(0, 0, 0, 0.8),
-                inset 0 1px 2px rgba(255, 255, 255, 0.2);
+                0 3px 6px rgba(0, 0, 0, 0.8),
+                inset 0 1px 2px rgba(255, 240, 208, 0.65);
             transform-style: preserve-3d;
         }
         
@@ -209,10 +501,10 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: radial-gradient(circle, #222 0%, #000 100%);
+            background: radial-gradient(circle, rgba(245, 223, 170, 0.6) 0%, rgba(96, 52, 20, 0.85) 70%, rgba(28, 16, 7, 1) 100%);
             top: 3px;
             left: 3px;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.9);
         }
         
         .cylinder-chamber:nth-child(1) { transform: rotateZ(0deg) translateX(45px) translateZ(5px); }
@@ -331,163 +623,308 @@
         }
         
         .game-stats {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+            position: relative;
+            background:
+                linear-gradient(135deg, rgba(44, 29, 17, 0.85), rgba(20, 13, 9, 0.9)),
+                radial-gradient(circle at 12% 20%, rgba(255, 214, 144, 0.12), transparent 65%);
+            border-radius: 18px;
+            padding: 20px 18px 22px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(198, 138, 58, 0.4);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 -25px 45px rgba(0, 0, 0, 0.35);
         }
-        
+
+        .game-stats::before,
+        .game-stats::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 208, 146, 0.9), rgba(81, 48, 21, 0.95));
+            box-shadow: 0 0 12px rgba(255, 208, 146, 0.4);
+            left: 16px;
+        }
+
+        .game-stats::before {
+            top: 14px;
+        }
+
+        .game-stats::after {
+            bottom: 14px;
+        }
+
         .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9em;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 0.92em;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
         }
-        
+
         .stat-row:last-child {
             margin-bottom: 0;
         }
-        
-        .pool {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 15px;
+
+        .stat-row span:first-child {
+            color: rgba(245, 212, 143, 0.75);
+        }
+
+        .stat-row span:last-child {
             font-weight: 600;
+        }
+
+        .pool {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-weight: 700;
             font-size: 0.85em;
+            letter-spacing: 1px;
+            background: linear-gradient(120deg, rgba(66, 170, 115, 0.85), rgba(36, 110, 78, 0.95));
+            box-shadow: 0 0 18px rgba(54, 193, 161, 0.35);
         }
-        
-        .pool-a {
-            background: #4CAF50;
-            color: white;
-        }
-        
-        .pool-b {
-            background: #FF9800;
-            color: white;
+
+        .pool::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.75);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         
         .players-list {
-            margin-top: 20px;
-            max-height: 200px;
+            margin-top: 26px;
+            max-height: 230px;
             overflow-y: auto;
+            padding-right: 6px;
+            position: relative;
         }
-        
+
+        .players-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .players-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 999px;
+        }
+
+        .players-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(214, 158, 91, 0.75), rgba(122, 77, 33, 0.9));
+            border-radius: 999px;
+        }
+
         .player {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
+            position: relative;
+            background: linear-gradient(135deg, rgba(46, 32, 20, 0.9), rgba(20, 14, 10, 0.9));
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9em;
+            font-size: 0.92em;
+            border: 1px solid rgba(168, 112, 60, 0.35);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            overflow: hidden;
         }
-        
-        .player.alive {
-            border-left: 3px solid #4CAF50;
+
+        .player::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(255, 231, 171, 0.05), transparent 55%);
+            mix-blend-mode: screen;
+            pointer-events: none;
         }
-        
-        .player.dead {
-            border-left: 3px solid #f44336;
-            opacity: 0.6;
+
+        .player::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 60%;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 231, 171, 0.55), rgba(143, 88, 34, 0.9));
+            box-shadow: 0 0 18px rgba(255, 231, 171, 0.4);
         }
-        
+
+        .player.alive::after {
+            background: linear-gradient(180deg, rgba(114, 224, 173, 0.7), rgba(43, 140, 103, 0.95));
+            box-shadow: 0 0 18px rgba(54, 193, 161, 0.45);
+        }
+
+        .player.dead::after {
+            background: linear-gradient(180deg, rgba(255, 145, 122, 0.7), rgba(191, 51, 35, 0.95));
+            box-shadow: 0 0 18px rgba(255, 111, 79, 0.4);
+        }
+
         .player.current-turn {
-            background: rgba(255, 235, 59, 0.2);
-            border-left: 3px solid #ffeb3b;
+            border-color: rgba(255, 219, 120, 0.5);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 0 25px rgba(255, 228, 138, 0.25);
         }
-        
+
+        .player span:first-child {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 1.5px;
+        }
+
         .status-badge {
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.75em;
-            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.7em;
+            font-weight: 700;
+            letter-spacing: 1.5px;
         }
-        
+
         .status-alive {
-            background: #4CAF50;
-            color: white;
+            background: linear-gradient(135deg, rgba(62, 160, 118, 0.95), rgba(37, 110, 80, 0.9));
+            color: #dffdf2;
+            box-shadow: 0 0 14px rgba(54, 193, 161, 0.45);
         }
-        
+
         .status-dead {
-            background: #f44336;
-            color: white;
+            background: linear-gradient(135deg, rgba(201, 62, 44, 0.95), rgba(121, 27, 20, 0.9));
+            color: #ffe7e0;
+            box-shadow: 0 0 14px rgba(255, 111, 79, 0.4);
         }
         
         .action-buttons {
             display: flex;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 18px;
+            margin-top: 26px;
+            position: relative;
         }
-        
+
+        .action-buttons::before {
+            content: '';
+            position: absolute;
+            inset: -16px 0 -18px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(40, 27, 17, 0.85), rgba(14, 9, 6, 0.92));
+            border: 1px solid rgba(168, 112, 60, 0.35);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+                inset 0 -25px 45px rgba(0, 0, 0, 0.35);
+            z-index: -1;
+        }
+
         .action-button {
+            position: relative;
             flex: 1;
-            padding: 15px 20px;
+            padding: 18px 20px;
             border: none;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 700;
+            border-radius: 14px;
+            font-size: 1.05em;
+            font-weight: 800;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 3px;
+            color: #1b0f08;
+            overflow: hidden;
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 18px 35px rgba(0, 0, 0, 0.45);
         }
-        
+
+        .action-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.45), transparent 70%);
+        }
+
+        .action-button::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            opacity: 0.4;
+        }
+
         .action-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+                0 25px 45px rgba(0, 0, 0, 0.4);
         }
-        
+
+        .action-button:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+
         .action-button:active:not(:disabled) {
-            transform: translateY(0);
+            transform: translateY(-1px) scale(0.99);
         }
-        
+
         .shoot-button {
-            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-            color: white;
+            background: linear-gradient(135deg, rgba(255, 123, 85, 0.95), rgba(168, 39, 25, 0.95));
+            text-shadow: 0 0 16px rgba(255, 123, 85, 0.65);
         }
-        
+
         .shoot-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+            background: linear-gradient(135deg, rgba(255, 143, 98, 1), rgba(191, 51, 35, 0.98));
         }
-        
+
         .pass-button {
-            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-            color: white;
+            background: linear-gradient(135deg, rgba(255, 200, 113, 0.95), rgba(173, 105, 32, 0.95));
+            text-shadow: 0 0 16px rgba(255, 200, 113, 0.55);
         }
-        
+
         .pass-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+            background: linear-gradient(135deg, rgba(255, 215, 135, 0.98), rgba(194, 126, 44, 1));
         }
-        
+
         .action-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            filter: grayscale(30%);
         }
-        
+
         .turn-indicator {
-            background: rgba(255, 235, 59, 0.2);
-            border: 2px solid #ffeb3b;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(255, 214, 102, 0.2), rgba(255, 241, 175, 0.18));
+            border: 1px solid rgba(255, 214, 102, 0.4);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
             text-align: center;
-            font-weight: 600;
-            color: #ffeb3b;
+            font-weight: 700;
+            color: rgba(255, 216, 128, 0.95);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
         }
-        
+
         .not-your-turn {
             text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 20px;
+            color: rgba(246, 231, 195, 0.55);
+            padding: 18px;
             font-style: italic;
+            letter-spacing: 2px;
         }
-        
+
         .chamber-indicator {
             text-align: center;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.8);
+            margin-top: 12px;
+            font-size: 0.85em;
+            letter-spacing: 3px;
+            color: rgba(245, 212, 143, 0.75);
         }
         
         .game-overlay {
@@ -633,8 +1070,22 @@
     </style>
 </head>
 <body>
+    <div class="steam-bg">
+        <div class="gear gear-lg"></div>
+        <div class="gear gear-md"></div>
+        <div class="gear gear-sm"></div>
+        <div class="steam-mist steam-mist-left"></div>
+        <div class="steam-mist steam-mist-right"></div>
+        <div class="floating-light light-left"></div>
+        <div class="floating-light light-right"></div>
+    </div>
+    
     <div class="container">
-        <h1>💀 Bang Gang</h1>
+        <div class="title-plate">
+            <span class="title-badge">Steam Royale</span>
+            <h1>💀 Bang Gang</h1>
+            <p class="title-sub">Russian Roulette Tipping Arena</p>
+        </div>
         
         <div class="game-stats">
             <div class="stat-row">
@@ -857,9 +1308,11 @@
                 if (preferredUsername) {
                     const key = preferredUsername.toLowerCase();
                     if (data[key]) {
+                        console.log('[BangGang] Loaded stored context by preferred username', { preferredUsername, context: data[key] });
                         return data[key];
                     }
                 }
+                console.log('[BangGang] Loaded stored context fallback', { context: data.__last });
                 return data.__last || null;
             } catch (error) {
                 console.warn('Failed to load stored context', error);
@@ -876,6 +1329,7 @@
                 data[key] = { channelId, username };
                 data.__last = { channelId, username };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                console.log('[BangGang] Saved context to storage', { key, channelId, username });
             } catch (error) {
                 console.warn('Failed to save context', error);
             }
@@ -900,16 +1354,20 @@
         
         async function findChannelForUsername(name) {
             if (!name) return null;
+            console.log('[BangGang] findChannelForUsername start', { name });
             try {
                 const response = await fetch(`${baseUrl}/api/find-game?username=${encodeURIComponent(name)}`);
                 if (!response.ok) {
+                    console.warn('[BangGang] findChannelForUsername non-200', { status: response.status });
                     return null;
                 }
                 const data = await response.json().catch(() => null);
                 if (!data || !data.found || !Array.isArray(data.games) || data.games.length === 0) {
+                    console.warn('[BangGang] findChannelForUsername no matches', { name, data });
                     return null;
                 }
                 const active = data.games.find(game => game.state === 'active');
+                console.log('[BangGang] findChannelForUsername success', { name, channelId: (active || data.games[0]).channelId });
                 return active || data.games[0];
             } catch (error) {
                 console.warn('Failed to resolve channel for username', error);
@@ -918,10 +1376,13 @@
         }
         
         async function ensureContext() {
+            console.log('[BangGang] ensureContext invoked', { channelId, username, contextReady, promptedForUsername });
             if (contextReady && channelId) {
+                console.log('[BangGang] Context already ready, skipping resolution');
                 return true;
             }
             if (ensureContextPromise) {
+                console.log('[BangGang] Awaiting in-flight context resolution');
                 return ensureContextPromise;
             }
             
@@ -932,6 +1393,7 @@
                     const stored = loadStoredContext();
                     if (stored && stored.username) {
                         username = stored.username;
+                        console.log('[BangGang] Loaded username from storage', { username });
                         updated = true;
                     }
                 }
@@ -940,6 +1402,7 @@
                     const stored = loadStoredContext(username);
                     if (stored && stored.channelId) {
                         channelId = stored.channelId;
+                        console.log('[BangGang] Loaded channelId from storage', { channelId, username });
                         if (!username && stored.username) {
                             username = stored.username;
                         }
@@ -951,15 +1414,18 @@
                     const refChannel = extractChannelIdFromReferrer();
                     if (refChannel) {
                         channelId = refChannel;
+                        console.log('[BangGang] Extracted channelId from referrer', { channelId, referrer: document.referrer });
                         updated = true;
                     }
                 }
                 
                 if (!username && !promptedForUsername) {
+                    console.log('[BangGang] Prompting for username');
                     promptedForUsername = true;
                     const input = window.prompt('Enter your Towns username to load Bang Gang:', '');
                     if (input) {
                         username = input.trim();
+                        console.log('[BangGang] User provided username', { username });
                         if (username) {
                             updated = true;
                         }
@@ -967,22 +1433,36 @@
                 }
                 
                 if (!channelId && username) {
+                    console.log('[BangGang] Resolving channel via backend', { username });
                     const resolved = await findChannelForUsername(username);
                     if (resolved && resolved.channelId) {
                         channelId = resolved.channelId;
+                        console.log('[BangGang] Backend resolved channel', { channelId, resolved });
                         updated = true;
+                    } else {
+                        console.warn('[BangGang] Backend failed to resolve channel', { username, resolved });
                     }
                 }
                 
+                if (!channelId && !username) {
+                    console.warn('[BangGang] Missing both channelId and username after resolution attempts');
+                } else if (!channelId) {
+                    console.warn('[BangGang] Still missing channelId after resolution attempts', { username });
+                } else if (!username) {
+                    console.warn('[BangGang] Still missing username after resolution attempts', { channelId });
+                }
+
                 if (channelId && username) {
                     contextReady = true;
                     saveContext();
                     hideError();
+                    console.log('[BangGang] Context successfully established', { channelId, username, updated });
                     return true;
                 }
                 
                 if (!channelId) {
                     showError('No channel context detected. Open Bang Gang from the channel message or enter your username when prompted.');
+                    console.error('[BangGang] Unable to determine channel context', { username, referrer: document.referrer });
                 }
                 
                 return false;
@@ -1028,13 +1508,16 @@
         }
         
         async function sendCommand(command) {
+            console.log('[BangGang] sendCommand called', { command, channelId, username, contextReady });
             const ready = await ensureContext();
             if (!ready) {
+                console.warn('[BangGang] sendCommand aborted - context not ready');
                 document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 return;
             }
 
             try {
+                console.log('[BangGang] Sending command request', { command, channelId, username });
                 const response = await fetch(`${baseUrl}/api/command`, {
                     method: 'POST',
                     headers: {
@@ -1048,6 +1531,7 @@
                 });
                 
                 const result = await response.json();
+                console.log('[BangGang] Command response received', result);
                 
                 if (result.success) {
                     if (command === 'shoot') {
@@ -1059,11 +1543,12 @@
                         fetchGameData();
                     }, 2000);
                 } else {
+                    console.warn('[BangGang] Command failed', result);
                     alert(result.error || result.message || 'Error occurred');
                     document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 }
             } catch (error) {
-                console.error('Error sending command:', error);
+                console.error('[BangGang] Error sending command', error);
                 alert('Failed to send command. Please try again.');
                 document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
             }
@@ -1118,26 +1603,33 @@
         }
         
         async function fetchGameData() {
+            console.log('[BangGang] fetchGameData called', { channelId, username, contextReady });
             const ready = await ensureContext();
             if (!ready) {
+                console.warn('[BangGang] fetchGameData aborted - context not ready');
                 return;
             }
 
             if (!username) {
                 showError('Unable to determine your username. Please reopen Bang Gang from the channel.');
+                console.error('[BangGang] Username missing after context resolution');
                 return;
             }
 
             try {
                 const encodedUsername = encodeURIComponent(username);
+                console.log('[BangGang] Fetching game data from API', { channelId, username });
                 const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&username=${encodedUsername}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
+                    console.error('[BangGang] Game data request failed', { status: response.status, errorData });
                     throw new Error(errorData.error || `Failed to fetch game data (${response.status})`);
                 }
                 const data = await response.json();
+                console.log('[BangGang] Game data response', data);
                 
                 if (data.error) {
+                    console.warn('[BangGang] Game data returned error field', data);
                     showError(data.error);
                     return;
                 }
@@ -1146,7 +1638,7 @@
                 hideError();
                 updateGameDisplay(data);
             } catch (error) {
-                console.error('Error fetching game data:', error);
+                console.error('[BangGang] Error fetching game data', error);
                 showError(error.message || 'Failed to load game. Please try refreshing.');
             }
         }

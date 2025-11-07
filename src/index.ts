@@ -414,13 +414,17 @@ app.get('/api/game', (c) => {
     try {
         const channelId = c.req.query('channelId')
         const username = c.req.query('username')
+
+        console.log('[BangGang] /api/game request', { channelId, username })
         
         if (!channelId) {
+            console.warn('[BangGang] /api/game missing channelId', { username })
             return c.json({ error: 'channelId is required' }, 400)
         }
         
         const game = gameManager.getGame(channelId)
         if (!game) {
+            console.warn('[BangGang] /api/game no game found', { channelId, username })
             return c.json({ error: 'No game found for this channel. Start a new game with /start' }, 404)
         }
         
@@ -436,6 +440,14 @@ app.get('/api/game', (c) => {
         }
         
         // Format game data for frontend
+        console.log('[BangGang] /api/game responding', {
+            channelId,
+            username,
+            state: game.state,
+            currentTurnIndex: game.currentTurnIndex,
+            playerCount: game.players.length,
+            isMyTurn,
+        })
         const gameData = {
             game: {
                 state: game.state,
@@ -463,11 +475,13 @@ app.get('/api/game', (c) => {
 app.get('/api/find-game', (c) => {
     try {
         const username = c.req.query('username')
+        console.log('[BangGang] /api/find-game request', { username })
         if (!username) {
             return c.json({ error: 'username is required' }, 400)
         }
 
         const games = gameManager.findGamesByUsername(username)
+        console.log('[BangGang] /api/find-game matches', { username, matches: games.length })
         if (games.length === 0) {
             return c.json({ found: false })
         }
@@ -495,18 +509,22 @@ app.post('/api/command', async (c) => {
     try {
         const body = await c.req.json()
         const { command, channelId, username } = body
+        console.log('[BangGang] /api/command request', { command, channelId, username })
         
         if (!command || !channelId || !username) {
+            console.warn('[BangGang] /api/command missing required fields', { command, channelId, username })
             return c.json({ success: false, error: 'Missing required fields' }, 400)
         }
         
         if (command !== 'shoot' && command !== 'pass') {
+            console.warn('[BangGang] /api/command invalid command', { command })
             return c.json({ success: false, error: 'Invalid command' }, 400)
         }
         
         // Find userId from username in the game
         const game = gameManager.getGame(channelId)
         if (!game) {
+            console.warn('[BangGang] /api/command game not found', { channelId })
             return c.json({ success: false, error: 'No game found' }, 404)
         }
         
@@ -516,10 +534,12 @@ app.post('/api/command', async (c) => {
         )
         
         if (!player) {
+            console.warn('[BangGang] /api/command player not found', { channelId, username })
             return c.json({ success: false, error: 'Player not found in game' }, 404)
         }
         
         // Process the command through game manager
+        console.log('[BangGang] /api/command executing', { command, channelId, username, userId: player.userId })
         const result = await gameManager.handleAction(
             channelId,
             player.userId,
@@ -549,8 +569,10 @@ app.post('/api/command', async (c) => {
         )
         
         if (result.success) {
+            console.log('[BangGang] /api/command success', { command, channelId, username })
             return c.json({ success: true, message: result.message })
         } else {
+            console.warn('[BangGang] /api/command failed', { command, channelId, username, message: result.message })
             return c.json({ success: false, error: result.message }, 400)
         }
     } catch (error) {
