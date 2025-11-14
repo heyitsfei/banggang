@@ -47,75 +47,67 @@
         
         body {
             font-family: 'Roboto Condensed', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background:
-                radial-gradient(circle at 20% 15%, rgba(242, 210, 149, 0.18) 0%, transparent 45%),
-                radial-gradient(circle at 80% 85%, rgba(178, 107, 38, 0.28) 0%, transparent 50%),
-                linear-gradient(140deg, rgba(8, 5, 3, 0.95) 0%, rgba(10, 7, 4, 0.9) 35%, rgba(26, 15, 9, 0.85) 100%),
-                linear-gradient(180deg, rgba(55, 35, 18, 0.35) 0%, rgba(9, 5, 2, 0.85) 40%, rgba(9, 5, 2, 0.95) 100%);
+            background: 
+                radial-gradient(ellipse at 50% 50%, rgba(20, 15, 10, 0.3) 0%, rgba(5, 3, 2, 0.95) 70%, #000 100%),
+                linear-gradient(180deg, #0a0805 0%, #050302 50%, #000 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 26px;
+            padding: 0;
             color: var(--text-primary);
             position: relative;
             overflow: hidden;
         }
 
+        /* Dark mysterious room background */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             pointer-events: none;
             background:
-                radial-gradient(circle at 15% 20%, rgba(250, 214, 152, 0.08), transparent 55%),
-                repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0, rgba(255, 255, 255, 0.04) 2px, transparent 2px, transparent 6px),
-                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 5px);
-            opacity: 0.5;
-            mix-blend-mode: screen;
+                radial-gradient(ellipse at 50% 40%, rgba(100, 80, 60, 0.15) 0%, transparent 40%),
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0px, rgba(0, 0, 0, 0.3) 1px, transparent 1px, transparent 2px);
+            opacity: 0.6;
+        }
+        
+        /* Spotlight effect on gun */
+        body::after {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, 
+                rgba(255, 240, 200, 0.25) 0%,
+                rgba(200, 160, 100, 0.15) 30%,
+                rgba(100, 60, 30, 0.08) 50%,
+                transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+            animation: spotlightPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes spotlightPulse {
+            0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
         }
         
         .container {
             position: relative;
-            background:
-                radial-gradient(circle at 20% 20%, rgba(255, 205, 143, 0.08), transparent 65%),
-                radial-gradient(circle at 80% 18%, rgba(255, 184, 108, 0.08), transparent 60%),
-                linear-gradient(160deg, rgba(37, 25, 16, 0.95) 0%, rgba(14, 9, 6, 0.94) 55%, rgba(30, 18, 11, 0.92) 100%);
-            border-radius: 28px;
-            box-shadow:
-                0 35px 70px rgba(0, 0, 0, 0.75),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-                inset 0 0 45px rgba(0, 0, 0, 0.55);
-            padding: 40px 38px 44px;
-            max-width: 560px;
+            background: transparent;
+            padding: 0;
+            max-width: 100%;
             width: 100%;
-            border: 1px solid rgba(198, 138, 58, 0.4);
-            backdrop-filter: blur(10px) saturate(120%);
-            z-index: 3;
-        }
-
-        .container::before,
-        .container::after {
-            content: '';
-            position: absolute;
-            border-radius: 22px;
-            inset: -12px;
-            z-index: -1;
-            background: linear-gradient(135deg, rgba(91, 54, 23, 0.7) 0%, rgba(41, 26, 13, 0.8) 100%);
-            border: 1px solid rgba(234, 192, 118, 0.25);
-            filter: drop-shadow(0 15px 45px rgba(0, 0, 0, 0.6));
-        }
-
-        .container::after {
-            inset: -20px;
-            opacity: 0.35;
-            background: repeating-linear-gradient(135deg,
-                rgba(255, 209, 148, 0.05) 0px,
-                rgba(255, 209, 148, 0.05) 14px,
-                transparent 14px,
-                transparent 28px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            filter: blur(0.5px);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
         
         .title-plate {
@@ -348,110 +340,211 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 30px 0;
-            min-height: 250px;
-            perspective: 1000px;
+            margin: 60px 0 40px;
+            min-height: 300px;
+            perspective: 1200px;
             perspective-origin: center center;
+            z-index: 3;
         }
         
         .gun {
             position: relative;
-            width: 260px;
+            width: 320px;
             height: 200px;
             transform-style: preserve-3d;
-            transform: rotateZ(-90deg) rotateY(-25deg) rotateX(15deg) scale(1.45);
+            transform: scale(1.3);
             transform-origin: center center;
             transition: transform 0.35s ease;
         }
         
         .gun:hover {
-            transform: rotateZ(-90deg) rotateY(-20deg) rotateX(12deg) scale(1.52);
+            transform: scale(1.35);
         }
         
+        /* Gun frame/body - side view */
         .gun-body {
             position: absolute;
-            width: 200px;
-            height: 50px;
-            background: linear-gradient(135deg, #6f431c 0%, #3e220c 60%, #2b1707 100%);
-            border-radius: 26px;
-            top: 65px;
-            left: 10px;
+            width: 180px;
+            height: 45px;
+            background: linear-gradient(90deg, #6f431c 0%, #5b3618 40%, #3e220c 70%, #2b1707 100%);
+            border-radius: 8px;
+            top: 77px;
+            left: 60px;
             box-shadow: 
-                0 16px 32px rgba(0, 0, 0, 0.75),
-                inset 0 2px 6px rgba(255, 234, 182, 0.2),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.55);
-            transform: translateZ(10px);
+                0 12px 24px rgba(0, 0, 0, 0.7),
+                inset -2px 0 6px rgba(0, 0, 0, 0.5),
+                inset 2px 0 4px rgba(255, 234, 182, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 220, 163, 0.2);
         }
         
         .gun-body::before {
             content: '';
             position: absolute;
-            top: 5px;
-            left: 10px;
-            width: 180px;
-            height: 40px;
+            top: 3px;
+            left: 5px;
+            width: 170px;
+            height: 39px;
             background: linear-gradient(90deg, 
-                rgba(255, 225, 170, 0.35) 0%,
-                rgba(135, 81, 27, 0.4) 55%,
-                rgba(41, 26, 13, 0.8) 100%);
-            border-radius: 20px;
+                rgba(255, 225, 170, 0.3) 0%,
+                rgba(135, 81, 27, 0.35) 40%,
+                rgba(41, 26, 13, 0.75) 100%);
+            border-radius: 6px;
         }
         
+        /* Barrel - extending to the right */
         .gun-barrel {
             position: absolute;
-            width: 140px;
-            height: 35px;
-            background: linear-gradient(120deg, #99622f 0%, #5b3618 55%, #341a09 100%);
-            border-radius: 18px;
-            top: 67px;
-            left: 80px;
+            width: 160px;
+            height: 28px;
+            background: linear-gradient(90deg, #99622f 0%, #7a4f24 30%, #5b3618 60%, #341a09 100%);
+            border-radius: 14px;
+            top: 85px;
+            left: 240px;
             box-shadow: 
-                inset 0 2px 8px rgba(255, 218, 162, 0.15),
-                0 8px 18px rgba(0, 0, 0, 0.6),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.55);
-            transform: translateZ(15px) rotateX(-2deg);
+                inset -2px 0 6px rgba(0, 0, 0, 0.6),
+                inset 2px 0 4px rgba(255, 218, 162, 0.15),
+                0 6px 14px rgba(0, 0, 0, 0.6),
+                inset 0 -2px 3px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 211, 153, 0.2);
         }
         
         .gun-barrel::before {
             content: '';
             position: absolute;
-            top: 5px;
-            left: 5px;
-            width: 130px;
-            height: 25px;
+            top: 4px;
+            left: 4px;
+            width: 152px;
+            height: 20px;
             background: radial-gradient(ellipse at center, 
-                rgba(255, 232, 184, 0.18) 0%,
-                rgba(141, 85, 36, 0.35) 48%,
-                rgba(0, 0, 0, 0.75) 100%);
-            border-radius: 12px;
+                rgba(255, 232, 184, 0.15) 0%,
+                rgba(141, 85, 36, 0.3) 45%,
+                rgba(0, 0, 0, 0.7) 100%);
+            border-radius: 10px;
         }
         
         .gun-barrel::after {
             content: '';
             position: absolute;
             top: 50%;
-            right: 2px;
-            width: 18px;
-            height: 18px;
+            right: 3px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: radial-gradient(circle, 
                 rgba(0, 0, 0, 0.95) 0%,
                 rgba(0, 0, 0, 1) 100%);
-            transform: translateY(-50%) translateZ(2px);
+            transform: translateY(-50%);
             box-shadow: 
-                inset 0 0 8px rgba(0, 0, 0, 1),
-                0 0 4px rgba(0, 0, 0, 0.8);
+                inset 0 0 6px rgba(0, 0, 0, 1),
+                0 0 3px rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(20, 15, 10, 0.9);
         }
         
+        /* Grip/handle - extending downward */
+        .gun-grip {
+            position: absolute;
+            width: 50px;
+            height: 90px;
+            background: linear-gradient(90deg, 
+                #8b5a2a 0%,
+                #6f431c 30%,
+                #5b3618 60%,
+                #3e220c 100%);
+            border-radius: 0 0 12px 12px;
+            top: 122px;
+            left: 70px;
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.7),
+                inset -2px 0 8px rgba(0, 0, 0, 0.6),
+                inset 2px 0 4px rgba(255, 234, 182, 0.15),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 220, 163, 0.2);
+        }
+        
+        .gun-grip::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 40px;
+            height: 80px;
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(139, 90, 42, 0.3) 0px,
+                rgba(139, 90, 42, 0.3) 2px,
+                rgba(59, 34, 12, 0.4) 2px,
+                rgba(59, 34, 12, 0.4) 4px
+            );
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* Trigger guard */
+        .gun-trigger-guard {
+            position: absolute;
+            width: 35px;
+            height: 50px;
+            border: 3px solid #5b3618;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            top: 122px;
+            left: 85px;
+            box-shadow: 
+                inset -2px 0 4px rgba(0, 0, 0, 0.6),
+                inset 2px 0 2px rgba(255, 218, 162, 0.1);
+        }
+        
+        /* Trigger */
+        .gun-trigger {
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: linear-gradient(90deg, #3e220c 0%, #2b1707 100%);
+            border-radius: 4px;
+            top: 150px;
+            left: 103px;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.8),
+                inset -1px 0 2px rgba(0, 0, 0, 0.6);
+        }
+        
+        /* Hammer */
+        .gun-hammer {
+            position: absolute;
+            width: 25px;
+            height: 35px;
+            background: linear-gradient(135deg, #6f431c 0%, #3e220c 60%, #2b1707 100%);
+            border-radius: 4px 4px 8px 8px;
+            top: 45px;
+            left: 15px;
+            transform-origin: bottom center;
+            transform: rotate(-15deg);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.7),
+                inset -1px 0 3px rgba(0, 0, 0, 0.5),
+                inset 1px 0 2px rgba(255, 234, 182, 0.2);
+            border: 1px solid rgba(255, 220, 163, 0.2);
+        }
+        
+        .gun-hammer::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #8b5a2a 0%, #5b3618 100%);
+            border-radius: 50%;
+            top: -6px;
+            left: 6.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* Cylinder - side view (circular from side) */
         .cylinder {
             position: absolute;
-            width: 90px;
-            height: 90px;
-            top: 40px;
-            left: 65px;
+            width: 80px;
+            height: 80px;
+            top: 60px;
+            left: 20px;
             transform-style: preserve-3d;
             transform-origin: center center;
             transition: transform 0.1s linear;
@@ -460,35 +553,37 @@
         .cylinder::before {
             content: '';
             position: absolute;
-            width: 90px;
-            height: 90px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 227, 179, 0.65) 0%,
-                rgba(198, 133, 60, 0.75) 25%,
+            background: radial-gradient(ellipse at 50% 50%, 
+                rgba(255, 227, 179, 0.7) 0%,
+                rgba(198, 133, 60, 0.8) 30%,
                 rgba(97, 52, 20, 0.95) 70%,
                 rgba(41, 22, 10, 1) 100%);
             box-shadow: 
-                0 10px 26px rgba(0, 0, 0, 0.85),
-                inset 0 2px 5px rgba(255, 225, 180, 0.25),
-                inset 0 -5px 12px rgba(0, 0, 0, 0.7);
-            border: 3px solid rgba(255, 219, 157, 0.25);
-            transform: translateZ(0);
+                0 8px 20px rgba(0, 0, 0, 0.8),
+                inset -2px 0 8px rgba(0, 0, 0, 0.6),
+                inset 2px 0 8px rgba(255, 225, 180, 0.3),
+                inset 0 -3px 10px rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 219, 157, 0.3);
         }
         
         .cylinder::after {
             content: '';
             position: absolute;
-            width: 70px;
-            height: 70px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
-            background: radial-gradient(circle at center, 
-                rgba(255, 231, 187, 0.35) 0%,
-                rgba(120, 70, 28, 0.85) 65%,
+            background: radial-gradient(ellipse at 50% 50%, 
+                rgba(255, 231, 187, 0.4) 0%,
+                rgba(120, 70, 28, 0.85) 60%,
                 rgba(30, 17, 8, 0.95) 100%);
-            top: 10px;
-            left: 10px;
-            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.85);
+            top: 7.5px;
+            left: 7.5px;
+            box-shadow: 
+                inset -2px 0 12px rgba(0, 0, 0, 0.9),
+                inset 2px 0 4px rgba(255, 240, 200, 0.2);
         }
         
         .cylinder.spinning {
@@ -502,36 +597,35 @@
         
         .cylinder-chamber {
             position: absolute;
-            width: 14px;
-            height: 14px;
-            background: radial-gradient(circle, #f1c97a 0%, #b67828 60%, #4b2a0f 100%);
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(ellipse, #f1c97a 0%, #b67828 60%, #4b2a0f 100%);
             border: 2px solid rgba(250, 217, 165, 0.8);
             border-radius: 50%;
-            transform-origin: 45px 45px;
+            transform-origin: 40px 40px;
             box-shadow: 
-                0 3px 6px rgba(0, 0, 0, 0.8),
+                0 2px 4px rgba(0, 0, 0, 0.8),
                 inset 0 1px 2px rgba(255, 240, 208, 0.65);
-            transform-style: preserve-3d;
         }
         
         .cylinder-chamber::before {
             content: '';
             position: absolute;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(245, 223, 170, 0.6) 0%, rgba(96, 52, 20, 0.85) 70%, rgba(28, 16, 7, 1) 100%);
+            background: radial-gradient(ellipse, rgba(245, 223, 170, 0.6) 0%, rgba(96, 52, 20, 0.85) 70%, rgba(28, 16, 7, 1) 100%);
             top: 3px;
             left: 3px;
-            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.9);
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.9);
         }
         
-        .cylinder-chamber:nth-child(1) { transform: rotateZ(0deg) translateX(45px) translateZ(5px); }
-        .cylinder-chamber:nth-child(2) { transform: rotateZ(60deg) translateX(45px) translateZ(5px); }
-        .cylinder-chamber:nth-child(3) { transform: rotateZ(120deg) translateX(45px) translateZ(5px); }
-        .cylinder-chamber:nth-child(4) { transform: rotateZ(180deg) translateX(45px) translateZ(5px); }
-        .cylinder-chamber:nth-child(5) { transform: rotateZ(240deg) translateX(45px) translateZ(5px); }
-        .cylinder-chamber:nth-child(6) { transform: rotateZ(300deg) translateX(45px) translateZ(5px); }
+        .cylinder-chamber:nth-child(1) { transform: rotateZ(0deg) translateX(40px); }
+        .cylinder-chamber:nth-child(2) { transform: rotateZ(60deg) translateX(40px); }
+        .cylinder-chamber:nth-child(3) { transform: rotateZ(120deg) translateX(40px); }
+        .cylinder-chamber:nth-child(4) { transform: rotateZ(180deg) translateX(40px); }
+        .cylinder-chamber:nth-child(5) { transform: rotateZ(240deg) translateX(40px); }
+        .cylinder-chamber:nth-child(6) { transform: rotateZ(300deg) translateX(40px); }
         
         .cylinder-chamber.bullet {
             background: radial-gradient(circle, #ff6666 0%, #cc0000 100%);
@@ -822,41 +916,31 @@
         
         .action-buttons {
             display: flex;
-            gap: 18px;
-            margin-top: 26px;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
             position: relative;
+            z-index: 3;
         }
 
         .action-buttons::before {
-            content: '';
-            position: absolute;
-            inset: -16px 0 -18px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, rgba(40, 27, 17, 0.85), rgba(14, 9, 6, 0.92));
-            border: 1px solid rgba(168, 112, 60, 0.35);
-            box-shadow:
-                inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-                inset 0 -25px 45px rgba(0, 0, 0, 0.35);
-            z-index: -1;
+            display: none;
         }
 
         .action-button {
             position: relative;
-            flex: 1;
-            padding: 18px 20px;
+            padding: 24px 50px;
             border: none;
-            border-radius: 14px;
-            font-size: 1.05em;
+            border-radius: 16px;
+            font-size: 1.2em;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 3px;
-            color: #1b0f08;
+            color: #fff;
             overflow: hidden;
-            box-shadow:
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 18px 35px rgba(0, 0, 0, 0.45);
+            min-width: 180px;
         }
 
         .action-button::before {
@@ -895,19 +979,32 @@
         .shoot-button {
             background: linear-gradient(135deg, rgba(255, 123, 85, 0.95), rgba(168, 39, 25, 0.95));
             text-shadow: 0 0 16px rgba(255, 123, 85, 0.65);
+            box-shadow:
+                0 0 30px rgba(255, 123, 85, 0.5),
+                0 8px 20px rgba(0, 0, 0, 0.6);
         }
 
         .shoot-button:hover:not(:disabled) {
             background: linear-gradient(135deg, rgba(255, 143, 98, 1), rgba(191, 51, 35, 0.98));
+            box-shadow:
+                0 0 40px rgba(255, 123, 85, 0.7),
+                0 10px 25px rgba(0, 0, 0, 0.7);
         }
 
         .pass-button {
-            background: linear-gradient(135deg, rgba(255, 200, 113, 0.95), rgba(173, 105, 32, 0.95));
-            text-shadow: 0 0 16px rgba(255, 200, 113, 0.55);
+            background: linear-gradient(135deg, rgba(100, 100, 100, 0.6), rgba(60, 60, 60, 0.7));
+            text-shadow: 0 0 8px rgba(200, 200, 200, 0.3);
+            box-shadow:
+                0 0 15px rgba(150, 150, 150, 0.2),
+                0 6px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(150, 150, 150, 0.3);
         }
 
         .pass-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, rgba(255, 215, 135, 0.98), rgba(194, 126, 44, 1));
+            background: linear-gradient(135deg, rgba(120, 120, 120, 0.7), rgba(80, 80, 80, 0.8));
+            box-shadow:
+                0 0 20px rgba(150, 150, 150, 0.3),
+                0 8px 20px rgba(0, 0, 0, 0.6);
         }
 
         .action-button:disabled {
@@ -917,25 +1014,32 @@
         }
 
         .turn-indicator {
-            background: linear-gradient(135deg, rgba(255, 214, 102, 0.2), rgba(255, 241, 175, 0.18));
-            border: 1px solid rgba(255, 214, 102, 0.4);
-            border-radius: 14px;
-            padding: 14px 18px;
-            margin-bottom: 18px;
+            background: linear-gradient(135deg, rgba(255, 214, 102, 0.3), rgba(255, 241, 175, 0.25));
+            border: 2px solid rgba(255, 214, 102, 0.6);
+            border-radius: 16px;
+            padding: 20px 40px;
+            margin-bottom: 30px;
             text-align: center;
-            font-weight: 700;
-            color: rgba(255, 216, 128, 0.95);
-            letter-spacing: 2px;
+            font-weight: 800;
+            font-size: 1.2em;
+            color: rgba(255, 240, 180, 1);
+            letter-spacing: 3px;
             text-transform: uppercase;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 0 25px rgba(255, 214, 102, 0.4),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            z-index: 3;
         }
 
         .not-your-turn {
             text-align: center;
-            color: rgba(246, 231, 195, 0.55);
-            padding: 18px;
-            font-style: italic;
+            color: rgba(255, 240, 200, 0.8);
+            padding: 20px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
             letter-spacing: 2px;
+            z-index: 3;
+            text-shadow: 0 0 10px rgba(255, 240, 200, 0.3);
         }
 
         .chamber-indicator {
@@ -1146,42 +1250,18 @@
     </style>
 </head>
 <body>
-    <div class="steam-bg">
-        <div class="gear gear-lg"></div>
-        <div class="gear gear-md"></div>
-        <div class="gear gear-sm"></div>
-        <div class="steam-mist steam-mist-left"></div>
-        <div class="steam-mist steam-mist-right"></div>
-        <div class="floating-light light-left"></div>
-        <div class="floating-light light-right"></div>
-    </div>
-    
     <div class="container">
-        <div class="title-plate">
-            <span class="title-badge">Steam Royale</span>
-            <h1>💀 Bang Gang</h1>
-            <p class="title-sub">Russian Roulette Tipping Arena</p>
+        <div id="turnIndicator" class="turn-indicator" style="display: none;">
+            ⏱️ It's your turn!
         </div>
         
-        <div class="game-stats">
-            <div class="stat-row">
-                <span>Status:</span>
-                <span id="gameStatus">Loading...</span>
-            </div>
-            <div class="stat-row">
-                <span>Pot Total:</span>
-                <span class="pool pool-a" id="potTotal">0 ETH</span>
-            </div>
-            <div class="stat-row">
-                <span>Death Chance:</span>
-                <span id="probability">-</span>
-            </div>
+        <div id="notYourTurn" class="not-your-turn" style="display: none;">
+            Waiting for your turn...
         </div>
         
         <div class="gun-container">
             <div class="gun">
-                <div class="gun-body"></div>
-                <div class="gun-barrel"></div>
+                <div class="gun-hammer"></div>
                 <div class="cylinder" id="cylinder">
                     <div class="cylinder-chamber" id="chamber0"></div>
                     <div class="cylinder-chamber" id="chamber1"></div>
@@ -1190,25 +1270,17 @@
                     <div class="cylinder-chamber" id="chamber4"></div>
                     <div class="cylinder-chamber" id="chamber5"></div>
                 </div>
+                <div class="gun-body"></div>
+                <div class="gun-barrel"></div>
+                <div class="gun-trigger-guard"></div>
+                <div class="gun-trigger"></div>
+                <div class="gun-grip"></div>
             </div>
-        </div>
-        <div class="chamber-indicator" id="chamberIndicator">Chamber: -</div>
-        
-        <div id="turnIndicator" class="turn-indicator" style="display: none;">
-            ⏱️ It's your turn! Choose an action:
-        </div>
-        
-        <div id="notYourTurn" class="not-your-turn" style="display: none;">
-            Waiting for your turn...
         </div>
         
         <div id="actionButtons" class="action-buttons" style="display: none;">
             <button id="shootButton" class="action-button shoot-button">🔫 Shoot</button>
             <button id="passButton" class="action-button pass-button">💨 Pass</button>
-        </div>
-        
-        <div class="players-list" id="playersList">
-            <p style="text-align: center; color: rgba(255, 255, 255, 0.6);">Loading players...</p>
         </div>
     </div>
     
@@ -1675,16 +1747,13 @@
         }
         
         async function sendCommand(command) {
-            logDebug('sendCommand called', { command, channelId, userId, contextReady });
             const ready = await ensureContext();
             if (!ready) {
-                logDebug('sendCommand aborted - context not ready');
                 document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 return;
             }
 
             try {
-                logDebug('sending command request', { command, channelId, userId, baseUrl });
                 const response = await fetch(`${baseUrl}/api/command`, {
                     method: 'POST',
                     headers: {
@@ -1698,19 +1767,20 @@
                 });
                 
                 const result = await response.json();
-                logDebug('command response received', result);
                 
                 if (result.success) {
                     if (command === 'shoot') {
                         // Show result animation
                         await showShootResult(result);
                     }
-                    // Refresh game data
+                    // Refresh game data immediately after action
                     setTimeout(() => {
                         fetchGameData();
                     }, 2000);
                 } else {
-                    logDebug('command failed', result);
+                    if (debugMode) {
+                        logDebug('command failed', result);
+                    }
                     alert(result.error || result.message || 'Error occurred');
                     document.querySelectorAll('.action-button').forEach(btn => btn.disabled = false);
                 }
@@ -1770,40 +1840,27 @@
         }
         
         async function fetchGameData() {
-            logDebug('fetchGameData called', { channelId, userId, contextReady, userIdType: typeof userId, userIdLength: userId?.length });
             const ready = await ensureContext();
             if (!ready) {
-                logDebug('fetchGameData aborted - context not ready');
                 return;
             }
 
             if (!userId) {
                 showError('Unable to determine your user ID. Please reopen Bang Gang from the channel.');
-                logDebug('userId missing after context resolution');
                 return;
             }
 
             try {
                 const encodedUserId = encodeURIComponent(userId);
                 const query = channelId ? `channelId=${channelId}&userId=${encodedUserId}` : `userId=${encodedUserId}`;
-                logDebug('fetching game data from API', { 
-                    channelId, 
-                    userId, 
-                    encodedUserId,
-                    userIdNormalized: userId.toLowerCase().trim(),
-                    url: `${baseUrl}/api/game?${query}` 
-                });
                 const response = await fetch(`${baseUrl}/api/game?${query}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    logDebug('game data request failed', { status: response.status, errorData });
                     throw new Error(errorData.error || `Failed to fetch game data (${response.status})`);
                 }
                 const data = await response.json();
-                logDebug('game data response', data);
                 
                 if (data.error) {
-                    logDebug('game data returned error field', data);
                     showError(data.error);
                     return;
                 }
@@ -1811,41 +1868,26 @@
                 // Update channelId from response if we didn't have it
                 if (data.game && data.game.channelId && !channelId) {
                     channelId = data.game.channelId;
-                    logDebug('updated channelId from game data', { channelId });
                     saveContext();
                 }
                 
-                // Debug turn detection
-                if (data.game && data.game.players) {
+                // Only log turn detection issues (when isMyTurn doesn't match expected state)
+                if (data.game && data.game.players && debugMode) {
                     const alivePlayers = data.game.players.filter(p => p.isAlive);
                     const currentPlayer = alivePlayers[data.game.currentTurnIndex];
                     const myNormalizedUserId = userId.toLowerCase().trim();
                     const currentPlayerNormalized = currentPlayer?.userId?.toLowerCase().trim();
-                    logDebug('turn detection debug', {
-                        myUserId: userId,
-                        myNormalizedUserId: myNormalizedUserId,
-                        currentTurnIndex: data.game.currentTurnIndex,
-                        currentPlayerUserId: currentPlayer?.userId,
-                        currentPlayerNormalized: currentPlayerNormalized,
-                        currentPlayerUsername: currentPlayer?.username,
-                        isMyTurn: data.isMyTurn,
-                        match: myNormalizedUserId === currentPlayerNormalized,
-                        gameState: data.game.state,
-                        alivePlayersCount: alivePlayers.length,
-                        allPlayers: data.game.players.map(p => ({ 
-                            userId: p.userId, 
-                            normalized: p.userId?.toLowerCase().trim(),
-                            username: p.username, 
-                            isAlive: p.isAlive 
-                        })),
-                        alivePlayers: alivePlayers.map((p, idx) => ({
-                            index: idx,
-                            userId: p.userId,
-                            normalized: p.userId?.toLowerCase().trim(),
-                            username: p.username,
-                            isCurrentTurn: idx === data.game.currentTurnIndex
-                        }))
-                    });
+                    const expectedMyTurn = myNormalizedUserId === currentPlayerNormalized;
+                    
+                    // Only log if there's a mismatch
+                    if (data.isMyTurn !== expectedMyTurn) {
+                        logDebug('turn detection mismatch', {
+                            isMyTurn: data.isMyTurn,
+                            expectedMyTurn,
+                            myUserId: userId,
+                            currentPlayerUserId: currentPlayer?.userId
+                        });
+                    }
                 }
                 
                 currentGameData = data;
@@ -1858,23 +1900,20 @@
         }
         
         function showError(message) {
-            const gameStatus = document.getElementById('gameStatus');
-            if (gameStatus) {
-                gameStatus.textContent = `Error: ${message}`;
-                gameStatus.style.color = '#f44336';
+            // Show error in the notYourTurn element if visible, otherwise just log
+            const notYourTurn = document.getElementById('notYourTurn');
+            if (notYourTurn) {
+                notYourTurn.textContent = `❌ Error: ${message}`;
+                notYourTurn.style.color = '#f44336';
+                notYourTurn.style.display = 'block';
             }
-            
-            // Also show in players list
-            const playersList = document.getElementById('playersList');
-            if (playersList) {
-                playersList.innerHTML = `<p style="text-align: center; color: #f44336; padding: 20px;">❌ ${message}</p>`;
-            }
+            console.error('[BangGang] Error:', message);
         }
         
         function hideError() {
-            const gameStatus = document.getElementById('gameStatus');
-            if (gameStatus) {
-                gameStatus.style.color = '';
+            const notYourTurn = document.getElementById('notYourTurn');
+            if (notYourTurn && notYourTurn.textContent.includes('Error:')) {
+                notYourTurn.style.color = '';
             }
         }
         
@@ -1912,32 +1951,8 @@
             }
             
             // Game is active - show normal gameplay
-            document.getElementById('gameStatus').textContent = 'Active';
-            document.getElementById('potTotal').textContent = game.poolA + ' ETH';
-            
-            const remainingChambers = 6 - game.gunChamber;
-            const probability = remainingChambers > 0 ? ((1 / remainingChambers) * 100).toFixed(1) : '100';
-            document.getElementById('probability').textContent = probability + '%';
-            document.getElementById('chamberIndicator').textContent = `Chamber: ${game.gunChamber + 1}/6`;
-            
             // Update cylinder visualization
             updateCylinder(game.gunChamber);
-            
-            // Update players list
-            const playersList = document.getElementById('playersList');
-            if (game.players && game.players.length > 0) {
-                playersList.innerHTML = game.players.map((player, index) => {
-                    const isCurrentTurn = game.state === 'active' && game.currentTurnIndex === index;
-                    return `
-                        <div class="player ${player.isAlive ? 'alive' : 'dead'} ${isCurrentTurn ? 'current-turn' : ''}">
-                            <span>${getPlayerDisplayName(player)}</span>
-                            <span class="status-badge ${player.isAlive ? 'status-alive' : 'status-dead'}">
-                                ${player.isAlive ? 'Alive' : 'Dead'}${isCurrentTurn ? ' ⏱️' : ''}
-                            </span>
-                        </div>
-                    `;
-                }).join('');
-            }
             
             // Show/hide action buttons based on turn
             const turnIndicator = document.getElementById('turnIndicator');
@@ -2037,13 +2052,37 @@
             }
         }
         
+        // Polling interval - only poll when waiting for turn
+        let gamePollInterval = null;
+        
+        function startPolling() {
+            // Only start polling if not already polling
+            if (gamePollInterval) return;
+            
+            // Poll every 5 seconds when waiting for turn
+            gamePollInterval = setInterval(() => {
+                // Only poll if it's not the user's turn (they'll trigger actions that refresh state)
+                const actionButtons = document.getElementById('actionButtons');
+                if (actionButtons && actionButtons.style.display === 'none') {
+                    fetchGameData();
+                }
+            }, 5000);
+        }
+        
+        function stopPolling() {
+            if (gamePollInterval) {
+                clearInterval(gamePollInterval);
+                gamePollInterval = null;
+            }
+        }
+        
         // Initial load - try to establish context first
         (async () => {
             const ready = await ensureContext();
             if (ready) {
                 fetchGameData();
-                // Refresh every 2 seconds
-                setInterval(fetchGameData, 2000);
+                // Start polling for game updates
+                startPolling();
             }
             // Error is already shown by ensureContext() if context resolution fails
         })();
