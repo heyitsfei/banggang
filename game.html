@@ -359,13 +359,13 @@
             width: 260px;
             height: 200px;
             transform-style: preserve-3d;
-            transform: rotateZ(-90deg) rotateY(-12deg) rotateX(6deg) scale(1.45);
+            transform: rotateZ(-90deg) rotateY(-25deg) rotateX(15deg) scale(1.45);
             transform-origin: center center;
             transition: transform 0.35s ease;
         }
         
         .gun:hover {
-            transform: rotateZ(-90deg) rotateY(-8deg) rotateX(4deg) scale(1.52);
+            transform: rotateZ(-90deg) rotateY(-20deg) rotateX(12deg) scale(1.52);
         }
         
         .gun-body {
@@ -426,6 +426,24 @@
                 rgba(141, 85, 36, 0.35) 48%,
                 rgba(0, 0, 0, 0.75) 100%);
             border-radius: 12px;
+        }
+        
+        .gun-barrel::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                rgba(0, 0, 0, 0.95) 0%,
+                rgba(0, 0, 0, 1) 100%);
+            transform: translateY(-50%) translateZ(2px);
+            box-shadow: 
+                inset 0 0 8px rgba(0, 0, 0, 1),
+                0 0 4px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(20, 15, 10, 0.9);
         }
         
         .cylinder {
