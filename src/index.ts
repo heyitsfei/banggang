@@ -433,11 +433,41 @@ app.get('/api/game', (c) => {
             return c.json({ error: 'channelId or userId is required' }, 400)
         }
 
+        // Helper to normalize userId for comparison (case-insensitive, trimmed)
+        const normalizeUserId = (id: string): string => {
+            if (!id) return ''
+            return id.trim().toLowerCase()
+        }
+        
         let isMyTurn = false
         if (userId && game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             if (currentPlayer) {
-                isMyTurn = currentPlayer.userId.toLowerCase() === userId.toLowerCase()
+                const normalizedRequestUserId = normalizeUserId(userId)
+                const normalizedCurrentUserId = normalizeUserId(currentPlayer.userId)
+                isMyTurn = normalizedCurrentUserId === normalizedRequestUserId
+                console.log('[BangGang] /api/game turn check', {
+                    requestUserId: userId,
+                    normalizedRequestUserId,
+                    currentPlayerUserId: currentPlayer.userId,
+                    normalizedCurrentUserId,
+                    isMyTurn,
+                    match: normalizedCurrentUserId === normalizedRequestUserId,
+                    currentTurnIndex: game.currentTurnIndex,
+                    totalAlivePlayers: game.alivePlayers.length,
+                    alivePlayers: game.alivePlayers.map((p, idx) => ({ 
+                        index: idx,
+                        userId: p.userId, 
+                        normalizedUserId: normalizeUserId(p.userId),
+                        displayName: p.displayName,
+                        isCurrentTurn: idx === game.currentTurnIndex
+                    }))
+                })
+            } else {
+                console.log('[BangGang] /api/game turn check - no current player', {
+                    currentTurnIndex: game.currentTurnIndex,
+                    alivePlayersCount: game.alivePlayers.length
+                })
             }
         }
 

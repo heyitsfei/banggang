@@ -1798,6 +1798,21 @@
                     saveContext();
                 }
                 
+                // Debug turn detection
+                if (data.game && data.game.players) {
+                    const currentPlayerIndex = data.game.currentTurnIndex;
+                    const currentPlayer = data.game.players[currentPlayerIndex];
+                    logDebug('turn detection debug', {
+                        myUserId: userId,
+                        currentTurnIndex: currentPlayerIndex,
+                        currentPlayerUserId: currentPlayer?.userId,
+                        currentPlayerUsername: currentPlayer?.username,
+                        isMyTurn: data.isMyTurn,
+                        gameState: data.game.state,
+                        players: data.game.players.map(p => ({ userId: p.userId, username: p.username, isAlive: p.isAlive }))
+                    });
+                }
+                
                 currentGameData = data;
                 hideError();
                 updateGameDisplay(data);
@@ -1826,6 +1841,18 @@
             if (gameStatus) {
                 gameStatus.style.color = '';
             }
+        }
+        
+        // Helper function to get display name (username) for a player
+        function getPlayerDisplayName(player) {
+            if (player.username) {
+                return player.username;
+            }
+            // Fallback: format userId nicely (first 6 chars + ... + last 4 chars)
+            if (player.userId && player.userId.length > 10) {
+                return `${player.userId.slice(0, 6)}...${player.userId.slice(-4)}`;
+            }
+            return player.userId || 'Unknown';
         }
         
         function updateGameDisplay(data) {
@@ -1868,7 +1895,7 @@
                     const isCurrentTurn = game.state === 'active' && game.currentTurnIndex === index;
                     return `
                         <div class="player ${player.isAlive ? 'alive' : 'dead'} ${isCurrentTurn ? 'current-turn' : ''}">
-                            <span>${player.username || player.userId}</span>
+                            <span>${getPlayerDisplayName(player)}</span>
                             <span class="status-badge ${player.isAlive ? 'status-alive' : 'status-dead'}">
                                 ${player.isAlive ? 'Alive' : 'Dead'}${isCurrentTurn ? ' ⏱️' : ''}
                             </span>
@@ -1906,7 +1933,7 @@
             const winner = game.players.find(p => p.isAlive);
             
             if (winner) {
-                message.innerHTML = `🏆 <strong>${winner.username || winner.userId}</strong> wins!<br><br>💰 Pot: ${game.poolA} ETH`;
+                message.innerHTML = `🏆 <strong>${getPlayerDisplayName(winner)}</strong> wins!<br><br>💰 Pot: ${game.poolA} ETH`;
             } else {
                 message.textContent = 'The game has ended.';
             }
@@ -1918,7 +1945,7 @@
                         <h3>Final Standings</h3>
                         ${game.players.map((player, index) => `
                             <div class="entered-player">
-                                ${player.isAlive ? '🏆' : '💀'} ${player.username || player.userId} ${player.isAlive ? '(Winner!)' : '(Eliminated)'}
+                                ${player.isAlive ? '🏆' : '💀'} ${getPlayerDisplayName(player)} ${player.isAlive ? '(Winner!)' : '(Eliminated)'}
                             </div>
                         `).join('')}
                     </div>
@@ -1941,7 +1968,7 @@
             if (game.players && game.players.length > 0) {
                 playersList.innerHTML = game.players.map(player => `
                     <div class="entered-player">
-                        💀 ${player.username || player.userId}
+                        💀 ${getPlayerDisplayName(player)}
                     </div>
                 `).join('');
             } else {
