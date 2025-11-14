@@ -66,15 +66,14 @@ export class GameManager {
     }
 
     /**
-     * Find all games where the provided username/displayName is participating.
-     * Falls back to matching on userId if displayName is unavailable.
+     * Find all games that include the provided userId (case insensitive).
      */
-    findGamesByUsername(username: string): Game[] {
-        if (!username) {
+    findGamesByUserId(userId: string): Game[] {
+        if (!userId) {
             return []
         }
 
-        const normalized = username.trim().toLowerCase()
+        const normalized = userId.trim().toLowerCase()
         if (!normalized) {
             return []
         }
@@ -82,11 +81,6 @@ export class GameManager {
         const matches: Game[] = []
         for (const game of this.games.values()) {
             const hasPlayer = game.players.some((player) => {
-                const displayName = (player.displayName || '').trim().toLowerCase()
-                if (displayName && displayName === normalized) {
-                    return true
-                }
-
                 return player.userId.toLowerCase() === normalized
             })
 

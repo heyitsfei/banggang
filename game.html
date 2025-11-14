@@ -1358,14 +1358,14 @@
         
         const urlParams = new URLSearchParams(window.location.search);
         let channelId = urlParams.get('channelId') || '';
-        let username = (urlParams.get('username') || '').trim();
+        let userId = (urlParams.get('userId') || '').trim();
         const debugMode = urlParams.get('debug') === '1';
 
         const deploymentBaseUrl = 'https://banggang.onrender.com';
         const origin = window.location.origin;
         const isLocalOrigin = origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
         const baseUrl = origin.includes('banggang.onrender.com') || isLocalOrigin ? origin : deploymentBaseUrl;
-        const STORAGE_KEY = 'banggang:lastContext';
+        const STORAGE_KEY = 'banggang:lastUserContext';
         
         let currentGameData = null;
         let isShooting = false;
@@ -1386,18 +1386,18 @@
             }
         }
 
-        logDebug('miniapp script loaded', { origin, channelId, username, baseUrl, debugMode });
+        logDebug('miniapp script loaded', { origin, channelId, userId, baseUrl, debugMode });
         
-        function loadStoredContext(preferredUsername = '') {
+        function loadStoredContext(preferredUserId = '') {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
                 if (!raw) return null;
                 const data = JSON.parse(raw);
                 if (!data || typeof data !== 'object') return null;
-                if (preferredUsername) {
-                    const key = preferredUsername.toLowerCase();
+                if (preferredUserId) {
+                    const key = preferredUserId.toLowerCase();
                     if (data[key]) {
-                logDebug('loaded stored context for username', { preferredUsername, context: data[key] });
+                        logDebug('loaded stored context for userId', { preferredUserId, context: data[key] });
                         return data[key];
                     }
                 }
@@ -1414,11 +1414,11 @@
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
                 const data = raw ? JSON.parse(raw) : {};
-                const key = (username || '').toLowerCase() || '__last';
-                data[key] = { channelId, username };
-                data.__last = { channelId, username };
+                const key = (userId || '').toLowerCase() || '__last';
+                data[key] = { channelId, userId };
+                data.__last = { channelId, userId };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                logDebug('saved context to storage', { key, channelId, username });
+                logDebug('saved context to storage', { key, channelId, userId });
             } catch (error) {
                 console.warn('Failed to save context', error);
             }
@@ -1441,31 +1441,31 @@
             return '';
         }
         
-        async function findChannelForUsername(name) {
-            if (!name) return null;
-        logDebug('findChannelForUsername start', { name });
+        async function findChannelForUserId(id) {
+            if (!id) return null;
+            logDebug('findChannelForUserId start', { userId: id });
             try {
-                const response = await fetch(`${baseUrl}/api/find-game?username=${encodeURIComponent(name)}`);
+                const response = await fetch(`${baseUrl}/api/find-game?userId=${encodeURIComponent(id)}`);
                 if (!response.ok) {
-                logDebug('findChannelForUsername non-200', { status: response.status });
+                    logDebug('findChannelForUserId non-200', { status: response.status });
                     return null;
                 }
                 const data = await response.json().catch(() => null);
                 if (!data || !data.found || !Array.isArray(data.games) || data.games.length === 0) {
-                logDebug('findChannelForUsername no matches', { name, data });
+                    logDebug('findChannelForUserId no matches', { userId: id, data });
                     return null;
                 }
                 const active = data.games.find(game => game.state === 'active');
-            logDebug('findChannelForUsername success', { name, channelId: (active || data.games[0]).channelId });
+                logDebug('findChannelForUserId success', { userId: id, channelId: (active || data.games[0]).channelId });
                 return active || data.games[0];
             } catch (error) {
-            logDebug('findChannelForUsername error', { error: error instanceof Error ? error.message : String(error) });
+                logDebug('findChannelForUserId error', { error: error instanceof Error ? error.message : String(error) });
                 return null;
             }
         }
         
         async function ensureContext() {
-            logDebug('ensureContext invoked', { channelId, username, contextReady, promptedForUsername });
+            logDebug('ensureContext invoked', { channelId, userId, contextReady, promptedForUsername });
             if (contextReady && channelId) {
                 logDebug('context already ready, skipping resolution');
                 return true;
@@ -1478,23 +1478,20 @@
             ensureContextPromise = (async () => {
                 let updated = false;
                 
-                if (!username) {
+                if (!userId) {
                     const stored = loadStoredContext();
-                    if (stored && stored.username) {
-                        username = stored.username;
-                        logDebug('loaded username from storage', { username });
+                    if (stored && stored.userId) {
+                        userId = stored.userId;
+                        logDebug('loaded userId from storage', { userId });
                         updated = true;
                     }
                 }
                 
                 if (!channelId) {
-                    const stored = loadStoredContext(username);
+                    const stored = loadStoredContext(userId);
                     if (stored && stored.channelId) {
                         channelId = stored.channelId;
-                        logDebug('loaded channelId from storage', { channelId, username });
-                        if (!username && stored.username) {
-                            username = stored.username;
-                        }
+                        logDebug('loaded channelId from storage', { channelId, userId });
                         updated = true;
                     }
                 }
@@ -1508,50 +1505,50 @@
                     }
                 }
                 
-                if (!username && !promptedForUsername) {
-                    logDebug('prompting user for username');
+                if (!userId && !promptedForUsername) {
+                    logDebug('prompting user for userId');
                     promptedForUsername = true;
-                    const input = window.prompt('Enter your Towns username to load Bang Gang:', '');
+                    const input = window.prompt('Enter your Towns user ID (0x...) to load Bang Gang:', '');
                     if (input) {
-                        username = input.trim();
-                        logDebug('user entered username', { username });
-                        if (username) {
+                        userId = input.trim();
+                        logDebug('user entered userId', { userId });
+                        if (userId) {
                             updated = true;
                         }
                     }
                 }
                 
-                if (!channelId && username) {
-                    logDebug('resolving channel via backend', { username });
-                    const resolved = await findChannelForUsername(username);
+                if (!channelId && userId) {
+                    logDebug('resolving channel via backend', { userId });
+                    const resolved = await findChannelForUserId(userId);
                     if (resolved && resolved.channelId) {
                         channelId = resolved.channelId;
                         logDebug('backend resolved channel', { channelId, resolved });
                         updated = true;
                     } else {
-                        logDebug('backend failed to resolve channel', { username, resolved });
+                        logDebug('backend failed to resolve channel', { userId, resolved });
                     }
                 }
                 
-                if (!channelId && !username) {
-                    logDebug('missing both channelId and username after resolution attempts');
+                if (!channelId && !userId) {
+                    logDebug('missing both channelId and userId after resolution attempts');
                 } else if (!channelId) {
-                    logDebug('still missing channelId after resolution attempts', { username });
-                } else if (!username) {
-                    logDebug('still missing username after resolution attempts', { channelId });
+                    logDebug('still missing channelId after resolution attempts', { userId });
+                } else if (!userId) {
+                    logDebug('still missing userId after resolution attempts', { channelId });
                 }
 
-                if (channelId && username) {
+                if (channelId && userId) {
                     contextReady = true;
                     saveContext();
                     hideError();
-                    logDebug('context successfully established', { channelId, username, updated });
+                    logDebug('context successfully established', { channelId, userId, updated });
                     return true;
                 }
                 
                 if (!channelId) {
-                    showError('No channel context detected. Open Bang Gang from the channel message or enter your username when prompted.');
-                    logDebug('unable to determine channel context', { username, referrer: document.referrer });
+                    showError('No channel context detected. Open Bang Gang from the channel message or enter your user ID when prompted.');
+                    logDebug('unable to determine channel context', { userId, referrer: document.referrer });
                 }
                 
                 return false;
@@ -1597,7 +1594,7 @@
         }
         
         async function sendCommand(command) {
-            logDebug('sendCommand called', { command, channelId, username, contextReady });
+            logDebug('sendCommand called', { command, channelId, userId, contextReady });
             const ready = await ensureContext();
             if (!ready) {
                 logDebug('sendCommand aborted - context not ready');
@@ -1606,7 +1603,7 @@
             }
 
             try {
-                logDebug('sending command request', { command, channelId, username, baseUrl });
+                logDebug('sending command request', { command, channelId, userId, baseUrl });
                 const response = await fetch(`${baseUrl}/api/command`, {
                     method: 'POST',
                     headers: {
@@ -1615,7 +1612,7 @@
                     body: JSON.stringify({
                         command: command,
                         channelId: channelId,
-                        username: username,
+                        userId: userId,
                     }),
                 });
                 
@@ -1692,23 +1689,24 @@
         }
         
         async function fetchGameData() {
-            logDebug('fetchGameData called', { channelId, username, contextReady });
+            logDebug('fetchGameData called', { channelId, userId, contextReady });
             const ready = await ensureContext();
             if (!ready) {
                 logDebug('fetchGameData aborted - context not ready');
                 return;
             }
 
-            if (!username) {
-                showError('Unable to determine your username. Please reopen Bang Gang from the channel.');
-                logDebug('username missing after context resolution');
+            if (!userId) {
+                showError('Unable to determine your user ID. Please reopen Bang Gang from the channel.');
+                logDebug('userId missing after context resolution');
                 return;
             }
 
             try {
-                const encodedUsername = encodeURIComponent(username);
-                logDebug('fetching game data from API', { channelId, username, url: `${baseUrl}/api/game` });
-                const response = await fetch(`${baseUrl}/api/game?channelId=${channelId}&username=${encodedUsername}`);
+                const encodedUserId = encodeURIComponent(userId);
+                const query = channelId ? `channelId=${channelId}&userId=${encodedUserId}` : `userId=${encodedUserId}`;
+                logDebug('fetching game data from API', { channelId, userId, url: `${baseUrl}/api/game?${query}` });
+                const response = await fetch(`${baseUrl}/api/game?${query}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     logDebug('game data request failed', { status: response.status, errorData });

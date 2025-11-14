@@ -172,8 +172,7 @@ bot.onSlashCommand('start', async (handler, { channelId, spaceId, userId, mentio
             const game = result.game
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             const baseUrl = getBaseUrl()
-            const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
-            const gameUrl = `${baseUrl}/game?channelId=${channelId}&username=${username}`
+            const gameUrl = `${baseUrl}/game?userId=${encodeURIComponent(currentPlayer.userId)}`
 
             await handler.sendMessage(
                 channelId,
@@ -216,8 +215,7 @@ bot.onSlashCommand('shoot', async (handler, { channelId, userId }) => {
         if (game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             const baseUrl = getBaseUrl()
-            const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
-            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&username=${username}`
+            const gameUrl = `${baseUrl}/game?userId=${encodeURIComponent(currentPlayer.userId)}`
             
             await bot.sendMessage(
                 game.channelId,
@@ -247,8 +245,7 @@ bot.onSlashCommand('pass', async (handler, { channelId, userId }) => {
         if (game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             const baseUrl = getBaseUrl()
-            const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
-            const gameUrl = `${baseUrl}/game?channelId=${game.channelId}&username=${username}`
+            const gameUrl = `${baseUrl}/game?userId=${encodeURIComponent(currentPlayer.userId)}`
             
             await bot.sendMessage(
                 game.channelId,
@@ -412,42 +409,47 @@ function getBaseUrl(): string {
 // API endpoint to get game data
 app.get('/api/game', (c) => {
     try {
-        const channelId = c.req.query('channelId')
-        const username = c.req.query('username')
+        let channelId = c.req.query('channelId') || undefined
+        const userId = c.req.query('userId')
 
-        console.log('[BangGang] /api/game request', { channelId, username })
-        
-        if (!channelId) {
-            console.warn('[BangGang] /api/game missing channelId', { username })
-            return c.json({ error: 'channelId is required' }, 400)
+        console.log('[BangGang] /api/game request', { channelId, userId })
+
+        let game = channelId ? gameManager.getGame(channelId) : undefined
+
+        if (!game && userId) {
+            const matches = gameManager.findGamesByUserId(userId)
+            console.log('[BangGang] /api/game matches by user', { userId, matches: matches.length })
+            if (matches.length === 0) {
+                return c.json({ error: 'No active game found for this user.' }, 404)
+            }
+            if (matches.length > 1) {
+                return c.json({ error: 'Multiple games found for this user. Open the miniapp from the game thread.' }, 409)
+            }
+            game = matches[0]
+            channelId = game.channelId
         }
-        
-        const game = gameManager.getGame(channelId)
-        if (!game) {
-            console.warn('[BangGang] /api/game no game found', { channelId, username })
-            return c.json({ error: 'No game found for this channel. Start a new game with /start' }, 404)
+
+        if (!channelId || !game) {
+            return c.json({ error: 'channelId or userId is required' }, 400)
         }
-        
-        // Check if it's the user's turn by matching username
+
         let isMyTurn = false
-        if (username && game.state === 'active' && game.alivePlayers.length > 0) {
+        if (userId && game.state === 'active' && game.alivePlayers.length > 0) {
             const currentPlayer = game.alivePlayers[game.currentTurnIndex]
             if (currentPlayer) {
-                const decodedUsername = decodeURIComponent(username)
-                // Match by username (displayName)
-                isMyTurn = (currentPlayer.displayName || currentPlayer.userId).toLowerCase() === decodedUsername.toLowerCase()
+                isMyTurn = currentPlayer.userId.toLowerCase() === userId.toLowerCase()
             }
         }
-        
-        // Format game data for frontend
+
         console.log('[BangGang] /api/game responding', {
             channelId,
-            username,
+            userId,
             state: game.state,
             currentTurnIndex: game.currentTurnIndex,
             playerCount: game.players.length,
             isMyTurn,
         })
+
         const gameData = {
             game: {
                 state: game.state,
@@ -456,6 +458,7 @@ app.get('/api/game', (c) => {
                 gunChamber: game.gunChamber,
                 currentTurnIndex: game.currentTurnIndex,
                 forcedShoot: game.forcedShoot,
+                channelId: game.channelId,
                 players: game.players.map(p => ({
                     userId: p.userId,
                     username: p.displayName,
@@ -464,7 +467,7 @@ app.get('/api/game', (c) => {
             },
             isMyTurn,
         }
-        
+
         return c.json(gameData)
     } catch (error) {
         console.error('Error in /api/game:', error)
@@ -474,14 +477,14 @@ app.get('/api/game', (c) => {
 
 app.get('/api/find-game', (c) => {
     try {
-        const username = c.req.query('username')
-        console.log('[BangGang] /api/find-game request', { username })
-        if (!username) {
-            return c.json({ error: 'username is required' }, 400)
+        const userId = c.req.query('userId')
+        console.log('[BangGang] /api/find-game request', { userId })
+        if (!userId) {
+            return c.json({ error: 'userId is required' }, 400)
         }
 
-        const games = gameManager.findGamesByUsername(username)
-        console.log('[BangGang] /api/find-game matches', { username, matches: games.length })
+        const games = gameManager.findGamesByUserId(userId)
+        console.log('[BangGang] /api/find-game matches', { userId, matches: games.length })
         if (games.length === 0) {
             return c.json({ found: false })
         }
@@ -504,56 +507,61 @@ app.get('/api/find-game', (c) => {
     }
 })
 
-// API endpoint to send commands
 app.post('/api/command', async (c) => {
     try {
         const body = await c.req.json()
-        const { command, channelId, username } = body
-        console.log('[BangGang] /api/command request', { command, channelId, username })
-        
-        if (!command || !channelId || !username) {
-            console.warn('[BangGang] /api/command missing required fields', { command, channelId, username })
+        let { command, channelId, userId } = body as { command?: string; channelId?: string; userId?: string }
+        console.log('[BangGang] /api/command request', { command, channelId, userId })
+
+        if (!command || !userId) {
+            console.warn('[BangGang] /api/command missing required fields', { command, channelId, userId })
             return c.json({ success: false, error: 'Missing required fields' }, 400)
         }
-        
+
         if (command !== 'shoot' && command !== 'pass') {
             console.warn('[BangGang] /api/command invalid command', { command })
             return c.json({ success: false, error: 'Invalid command' }, 400)
         }
-        
-        // Find userId from username in the game
-        const game = gameManager.getGame(channelId)
+
+        let game = channelId ? gameManager.getGame(channelId) : undefined
         if (!game) {
-            console.warn('[BangGang] /api/command game not found', { channelId })
+            const matches = gameManager.findGamesByUserId(userId)
+            console.log('[BangGang] /api/command matches by user', { userId, matches: matches.length })
+            if (matches.length === 0) {
+                return c.json({ success: false, error: 'No game found for this user' }, 404)
+            }
+            if (matches.length > 1) {
+                return c.json({ success: false, error: 'Multiple games found for this user. Open the miniapp from the game thread.' }, 409)
+            }
+            game = matches[0]
+            channelId = game.channelId
+        }
+
+        if (!game || !channelId) {
+            console.warn('[BangGang] /api/command no game resolved', { userId })
             return c.json({ success: false, error: 'No game found' }, 404)
         }
-        
-        // Find player by username
-        const player = game.players.find(p => 
-            (p.displayName || p.userId).toLowerCase() === username.toLowerCase()
-        )
-        
+
+        const player = game.players.find(p => p.userId.toLowerCase() === userId.toLowerCase())
+
         if (!player) {
-            console.warn('[BangGang] /api/command player not found', { channelId, username })
+            console.warn('[BangGang] /api/command player not found', { channelId, userId })
             return c.json({ success: false, error: 'Player not found in game' }, 404)
         }
-        
-        // Process the command through game manager
-        console.log('[BangGang] /api/command executing', { command, channelId, username, userId: player.userId })
+
+        console.log('[BangGang] /api/command executing', { command, channelId, userId: player.userId })
         const result = await gameManager.handleAction(
             channelId,
             player.userId,
             command,
             async (game, message) => {
                 await sendGameMessage(game.channelId, message)
-                
-                // Show next turn with miniapp link if game is still active
+
                 if (game.state === 'active' && game.alivePlayers.length > 0) {
                     const currentPlayer = game.alivePlayers[game.currentTurnIndex]
                     const baseUrl = getBaseUrl()
-                    const username = encodeURIComponent(currentPlayer.displayName || currentPlayer.userId)
-                    const gameUrl = `${baseUrl}/game?channelId=${channelId}&username=${username}`
-                    
+                    const gameUrl = `${baseUrl}/game?userId=${encodeURIComponent(currentPlayer.userId)}`
+
                     await bot.sendMessage(
                         game.channelId,
                         `⏱️ <@${currentPlayer.userId}> your turn!`,
@@ -567,12 +575,12 @@ app.post('/api/command', async (c) => {
                 }
             },
         )
-        
+
         if (result.success) {
-            console.log('[BangGang] /api/command success', { command, channelId, username })
+            console.log('[BangGang] /api/command success', { command, channelId, userId })
             return c.json({ success: true, message: result.message })
         } else {
-            console.warn('[BangGang] /api/command failed', { command, channelId, username, message: result.message })
+            console.warn('[BangGang] /api/command failed', { command, channelId, userId, message: result.message })
             return c.json({ success: false, error: result.message }, 400)
         }
     } catch (error) {
