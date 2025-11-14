@@ -1739,6 +1739,13 @@
                     return;
                 }
                 
+                // Update channelId from response if we didn't have it
+                if (data.game && data.game.channelId && !channelId) {
+                    channelId = data.game.channelId;
+                    logDebug('updated channelId from game data', { channelId });
+                    saveContext();
+                }
+                
                 currentGameData = data;
                 hideError();
                 updateGameDisplay(data);
@@ -1906,15 +1913,16 @@
             }
         }
         
-        // Initial load
-        if (channelId) {
-            fetchGameData();
-            // Refresh every 2 seconds
-            setInterval(fetchGameData, 2000);
-        } else {
-            // Show error if no channelId
-            showError('No channel ID provided. Please open the game from the Towns channel.');
-        }
+        // Initial load - try to establish context first
+        (async () => {
+            const ready = await ensureContext();
+            if (ready) {
+                fetchGameData();
+                // Refresh every 2 seconds
+                setInterval(fetchGameData, 2000);
+            }
+            // Error is already shown by ensureContext() if context resolution fails
+        })();
     </script>
 </body>
 </html>
