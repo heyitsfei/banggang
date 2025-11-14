@@ -1378,7 +1378,30 @@
         let channelId = urlParams.get('channelId') || '';
         let userId = (urlParams.get('userId') || '').trim();
         const debugMode = urlParams.get('debug') === '1';
-
+        
+        // Try to get userId from Towns context if not in URL
+        if (!userId) {
+            // Check for Towns client context
+            if (typeof window !== 'undefined') {
+                // Try various possible locations for user context
+                const townsClient = window.towns || window.__towns__;
+                if (townsClient?.user?.address || townsClient?.user?.userId) {
+                    userId = (townsClient.user.address || townsClient.user.userId || '').trim();
+                    console.log('[BangGang] Found userId from Towns client', { userId });
+                }
+                // Try Farcaster context
+                if (!userId && window.farcaster?.user?.address) {
+                    userId = window.farcaster.user.address.trim();
+                    console.log('[BangGang] Found userId from Farcaster context', { userId });
+                }
+                // Try Towns miniapp context
+                if (!userId && window.miniapp?.user?.address) {
+                    userId = window.miniapp.user.address.trim();
+                    console.log('[BangGang] Found userId from miniapp context', { userId });
+                }
+            }
+        }
+        
         const deploymentBaseUrl = 'https://banggang.onrender.com';
         const origin = window.location.origin;
         const isLocalOrigin = origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
@@ -1390,6 +1413,35 @@
         let contextReady = false;
         let ensureContextPromise = null;
         let promptedForUsername = false;
+        
+        // Set up postMessage listener for user context (runs regardless of initial userId)
+        if (typeof window !== 'undefined') {
+            window.addEventListener('message', (event) => {
+                // Only process messages from Towns/Farcaster origins for security
+                const allowedOrigins = ['https://app.alpha.towns.com', 'https://app.towns.com', 'https://alpha.towns.com', 'https://towns.com'];
+                if (allowedOrigins.some(origin => event.origin.includes(origin)) || event.origin === window.location.origin) {
+                    if (event.data?.type === 'towns:user' || event.data?.type === 'userContext' || event.data?.userId || event.data?.address) {
+                        const userAddress = event.data.userId || event.data.address || event.data.user?.address;
+                        if (userAddress && (!userId || userId !== userAddress.trim())) {
+                            userId = userAddress.trim();
+                            console.log('[BangGang] Received userId from postMessage', { userId, origin: event.origin });
+                            // Trigger context re-establishment if we got a new userId
+                            if (contextReady) {
+                                ensureContextPromise = null;
+                                ensureContext();
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Request user context from parent frame if embedded
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'requestUserContext' }, '*');
+                // Also try Towns-specific message format
+                window.parent.postMessage({ type: 'towns:getUser' }, '*');
+            }
+        }
         const debugOverlay = document.getElementById('debugOverlay');
 
         function logDebug(message, data = {}) {
@@ -1404,7 +1456,7 @@
             }
         }
 
-        logDebug('miniapp script loaded', { origin, channelId, userId, baseUrl, debugMode });
+        logDebug('miniapp script loaded', { origin, channelId, userId, baseUrl, debugMode, userIdSource: userId ? (urlParams.get('userId') ? 'url' : 'context') : 'none' });
         
         function loadStoredContext(preferredUserId = '') {
             try {
