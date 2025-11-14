@@ -1456,6 +1456,17 @@
             }
         }
 
+        // Always log to console for debugging (not just in debug mode)
+        console.log('[BangGang] Miniapp initialized', {
+            origin,
+            channelId,
+            userId,
+            userIdFromUrl: urlParams.get('userId'),
+            userIdSource: userId ? (urlParams.get('userId') ? 'url' : 'context') : 'none',
+            userIdNormalized: userId ? userId.toLowerCase().trim() : null,
+            baseUrl,
+            debugMode
+        });
         logDebug('miniapp script loaded', { origin, channelId, userId, baseUrl, debugMode, userIdSource: userId ? (urlParams.get('userId') ? 'url' : 'context') : 'none' });
         
         function loadStoredContext(preferredUserId = '') {
@@ -1759,7 +1770,7 @@
         }
         
         async function fetchGameData() {
-            logDebug('fetchGameData called', { channelId, userId, contextReady });
+            logDebug('fetchGameData called', { channelId, userId, contextReady, userIdType: typeof userId, userIdLength: userId?.length });
             const ready = await ensureContext();
             if (!ready) {
                 logDebug('fetchGameData aborted - context not ready');
@@ -1775,7 +1786,13 @@
             try {
                 const encodedUserId = encodeURIComponent(userId);
                 const query = channelId ? `channelId=${channelId}&userId=${encodedUserId}` : `userId=${encodedUserId}`;
-                logDebug('fetching game data from API', { channelId, userId, url: `${baseUrl}/api/game?${query}` });
+                logDebug('fetching game data from API', { 
+                    channelId, 
+                    userId, 
+                    encodedUserId,
+                    userIdNormalized: userId.toLowerCase().trim(),
+                    url: `${baseUrl}/api/game?${query}` 
+                });
                 const response = await fetch(`${baseUrl}/api/game?${query}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
@@ -1800,16 +1817,34 @@
                 
                 // Debug turn detection
                 if (data.game && data.game.players) {
-                    const currentPlayerIndex = data.game.currentTurnIndex;
-                    const currentPlayer = data.game.players[currentPlayerIndex];
+                    const alivePlayers = data.game.players.filter(p => p.isAlive);
+                    const currentPlayer = alivePlayers[data.game.currentTurnIndex];
+                    const myNormalizedUserId = userId.toLowerCase().trim();
+                    const currentPlayerNormalized = currentPlayer?.userId?.toLowerCase().trim();
                     logDebug('turn detection debug', {
                         myUserId: userId,
-                        currentTurnIndex: currentPlayerIndex,
+                        myNormalizedUserId: myNormalizedUserId,
+                        currentTurnIndex: data.game.currentTurnIndex,
                         currentPlayerUserId: currentPlayer?.userId,
+                        currentPlayerNormalized: currentPlayerNormalized,
                         currentPlayerUsername: currentPlayer?.username,
                         isMyTurn: data.isMyTurn,
+                        match: myNormalizedUserId === currentPlayerNormalized,
                         gameState: data.game.state,
-                        players: data.game.players.map(p => ({ userId: p.userId, username: p.username, isAlive: p.isAlive }))
+                        alivePlayersCount: alivePlayers.length,
+                        allPlayers: data.game.players.map(p => ({ 
+                            userId: p.userId, 
+                            normalized: p.userId?.toLowerCase().trim(),
+                            username: p.username, 
+                            isAlive: p.isAlive 
+                        })),
+                        alivePlayers: alivePlayers.map((p, idx) => ({
+                            index: idx,
+                            userId: p.userId,
+                            normalized: p.userId?.toLowerCase().trim(),
+                            username: p.username,
+                            isCurrentTurn: idx === data.game.currentTurnIndex
+                        }))
                     });
                 }
                 
@@ -1915,6 +1950,16 @@
                 actionButtons.style.display = 'flex';
             } else if (game.state === 'active') {
                 turnIndicator.style.display = 'none';
+                // Show whose turn it is
+                // currentTurnIndex is the index into alivePlayers, not all players
+                const alivePlayers = game.players.filter(p => p.isAlive);
+                const currentPlayer = alivePlayers[game.currentTurnIndex];
+                if (currentPlayer) {
+                    const currentPlayerName = getPlayerDisplayName(currentPlayer);
+                    notYourTurn.textContent = `Waiting for ${currentPlayerName}'s turn...`;
+                } else {
+                    notYourTurn.textContent = 'Waiting for your turn...';
+                }
                 notYourTurn.style.display = 'block';
                 actionButtons.style.display = 'none';
             } else {
